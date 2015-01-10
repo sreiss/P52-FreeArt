@@ -8,17 +8,17 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="${pageContext.request.contextPath}">FreeArt!</a>
+      <a class="navbar-brand" href="${rootUrl}">FreeArt!</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li><a href="${pageContext.request.contextPath}/Work">All Art</a></li>
-        <li><a href="${pageContext.request.contextPath}/Category">Categories</a></li>
-        <li><a href="${pageContext.request.contextPath}/Author">Authors</a></li>
+        <li><a href="${rootUrl}/Work">All Art</a></li>
+        <li><a href="${rootUrl}/Category">Categories</a></li>
+        <li><a href="${rootUrl}/Author">Authors</a></li>
       </ul>
-      <form class="navbar-form navbar-right" method="get" action="${pageContext.request.contextPath}/Search">
+      <form class="navbar-form navbar-right" method="get" action="${rootUrl}/Search">
         <div class="form-group">
           <input type="text" class="form-control" placeholder="Search" name="search">
         </div>

@@ -1,6 +1,10 @@
 <%@ include file="/WEB-INF/app/includes/header.jsp"%>
 
 <div class="container">
+  <ol class="breadcrumb">
+    <li><a href="${rootUrl}/Work">All Works</a></li>
+    <li class="active">Categories</li>
+  </ol>
   <h1 class="text-center">Categories</h1>
   <c:if test="${empty requestScope.categories}">
     <p class="text-center">There are no categories!</p>
@@ -17,7 +21,7 @@
         <tbody>
           <c:forEach items="${requestScope.categories}" var="category">
             <tr>
-              <td><a href="${pageContext.request.contextPath}/Work?category=${category.id}">${category.name}</a></td>
+              <td><a href="${rootUrl}/Category?id=${category.id}" class="text-capitalize">${fn:toLowerCase(category.name)}</a></td>
               <td>${fn:length(category.works)}</td>
             </tr>
           </c:forEach>

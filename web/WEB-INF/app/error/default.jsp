@@ -1,6 +1,6 @@
 <%@ include file="/WEB-INF/app/includes/header.jsp"%>
 
-<div class="container">
+<div class="container text-center">
   <h1 class="text-danger"><%= request.getAttribute("javax.servlet.error.status_code")%>!</h1>
   <p class="text-danger"><%= request.getAttribute("javax.servlet.error.message")%></p>
 </div>

@@ -1,24 +1,17 @@
 <%@ include file="/WEB-INF/app/includes/header.jsp"%>
 
+<c:set var="category" value="${requestScope.category}"></c:set>
+
 <div class="container">
-  <h1>Category</h1>
-  <c:if test="${not empty requestScope.categories}">
-    <table class="table table-striped">
-      <thead>
-      <tr>
-        <td>Name</td>
-        <td>Number of elements</td>
-      </tr>
-      </thead>
-      <tbody>
-      <c:forEach items="${requestScope.categories}" var="category">
-        <tr>
-          <td><a href="${pageContext.request.}/Work?category=${category.id}">${category.name}</a></td>
-          <td>${fn:length(category.works)}</td>
-        </tr>
-      </c:forEach>
-      </tbody>
-    </table>
+  <ol class="breadcrumb">
+    <li><a href="${rootUrl}/Work">All Works</a></li>
+    <li><a href="${rootUrl}/Category">Categories</a></li>
+    <li class="active text-capitalize">${fn:toLowerCase(category.name)}</li>
+  </ol>
+  <h1 class="text-center text-capitalize">${fn:toLowerCase(category.name)}</h1>
+  <c:if test="${not empty category.works}">
+    <c:set var="works" value="${category.works}"></c:set>
+    <%@ include file="/WEB-INF/app/servlet/includes/workLister.jsp"%>
   </c:if>
 </div>
 

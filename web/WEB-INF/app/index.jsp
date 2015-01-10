@@ -6,7 +6,7 @@
                 <h1 class="text-center">
                   Welcome to FreeArt!
                 </h1>
-                <form method="get" action="${pageContext.request.contextPath}/Search">
+                <form method="get" action="${rootUrl}/Search">
                     <div class="form-group">
                         <div class="text-center">
                             <label for="search">Find some art!</label>
