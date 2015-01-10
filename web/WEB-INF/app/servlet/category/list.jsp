@@ -1,15 +1,5 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: Simon
-  Date: 09/01/2015
-  Time: 14:03
-  To change this template use File | Settings | File Templates.
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
 <%@ include file="/WEB-INF/app/includes/header.jsp"%>
-<body>
-<%@ include file="/WEB-INF/app/includes/menu.jsp"%>
+
 <div class="container">
   <h1>Categories</h1>
   <c:if test="${empty requestScope.categories}">
@@ -34,6 +24,5 @@
     </table>
   </c:if>
 </div>
+
 <%@ include file="/WEB-INF/app/includes/footer.jsp"%>
-</body>
-</html>

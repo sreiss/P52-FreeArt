@@ -16,10 +16,11 @@
       <ul class="nav navbar-nav">
         <li><a href="${pageContext.request.contextPath}/Work">All Art</a></li>
         <li><a href="${pageContext.request.contextPath}/Category">Categories</a></li>
+        <li><a href="${pageContext.request.contextPath}/Author">Authors</a></li>
       </ul>
-      <form class="navbar-form navbar-right" role="search">
+      <form class="navbar-form navbar-right" method="get" action="${pageContext.request.contextPath}/Search">
         <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search">
+          <input type="text" class="form-control" placeholder="Search" name="search">
         </div>
         <button type="submit" class="btn btn-default">Browse</button>
       </form>

@@ -7,12 +7,7 @@ import java.util.Collection;
  * Created by Simon on 09/01/2015.
  */
 @Entity
-@NamedQueries({
-        @NamedQuery(
-                name = "Author.findAll",
-                query = "SELECT a FROM Author a"
-        )
-})
+@Table(name = "author", uniqueConstraints = @UniqueConstraint(columnNames = {"id", "login"}))
 public class Author {
     private String login;
     private String email;
