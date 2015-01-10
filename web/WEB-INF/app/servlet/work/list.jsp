@@ -8,9 +8,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
-<%@ include file="/WEB-INF/includes/header.jsp"%>
+<%@ include file="/WEB-INF/app/includes/header.jsp"%>
 <body>
-<%@ include file="/WEB-INF/includes/menu.jsp"%>
+<%@ include file="/WEB-INF/app/includes/menu.jsp"%>
 <div class="container">
   <h1>Works</h1>
   <c:if test="${empty requestScope.works}">
@@ -41,6 +41,6 @@
     </c:forEach>
   </c:if>
 </div>
-<%@ include file="/WEB-INF/includes/footer.jsp"%>
+<%@ include file="/WEB-INF/app/includes/footer.jsp"%>
 </body>
 </html>

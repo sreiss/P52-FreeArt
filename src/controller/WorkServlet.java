@@ -53,7 +53,7 @@ public class WorkServlet extends HttpServlet {
 
         request.setAttribute("pageTitle", "All our amazing pieces of art!");
         request.setAttribute("works", works);
-        requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/work/list.jsp");
+        requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/work/list.jsp");
 
         return requestDispatcher;
     }

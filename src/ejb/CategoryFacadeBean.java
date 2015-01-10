@@ -1,5 +1,7 @@
 package ejb;
 
+import model.Category;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -13,7 +15,7 @@ public class CategoryFacadeBean extends DataFacade {
     private EntityManager entityManager;
 
     public CategoryFacadeBean() {
-        super(CategoryFacadeBean.class);
+        super(Category.class);
     }
 
     @Override

@@ -22,7 +22,7 @@ public abstract class DataFacade<T> {
         getEntityManager().persist(entity);
     }
 
-    public T find(Long id) {
+    public T find(int id) {
         return getEntityManager().find(entityClass, id);
     }
 

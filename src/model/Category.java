@@ -7,16 +7,13 @@ import java.util.Collection;
  * Created by Simon on 09/01/2015.
  */
 @Entity
-@NamedQueries({
-        @NamedQuery(
-                name = "Category.findAll",
-                query = "SELECT c FROM Category c"
-        )
-})
+@Table(
+        name = "category",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"id", "name"})
+)
 public class Category {
     private int id;
     private String name;
-    private int categoryId;
     private Collection<Work> works;
     private Collection<Work> worksById;
 
@@ -40,16 +37,6 @@ public class Category {
         this.name = name;
     }
 
-    @Basic
-    @Column(name = "categoryId")
-    public int getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -57,7 +44,6 @@ public class Category {
 
         Category category = (Category) o;
 
-        if (categoryId != category.categoryId) return false;
         if (id != category.id) return false;
         if (name != null ? !name.equals(category.name) : category.name != null) return false;
 
@@ -68,7 +54,6 @@ public class Category {
     public int hashCode() {
         int result = id;
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + categoryId;
         return result;
     }
 
