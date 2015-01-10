@@ -23,13 +23,47 @@
   </c:forEach>
   <c:forEach items="${audioExtensions}" var="audioExtension">
     <c:if test="${fileExtension eq audioExtension}">
-      <div class="embed-responsive embed-responsive-16by9m">
-        <div class="embed-responsive-item">
-          <audio src="${rootUrl}/uploads/${work.category.name}/${work.file}"></audio>
-        </div>
+      <div class="well">
+        <audio style="width: 100%;" src="${rootUrl}/uploads/${work.category.name}/${work.file}" type="audio/${audioExtension}" controls></audio>
       </div>
     </c:if>
   </c:forEach>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="col-md-4">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Details
+          </div>
+          <table class="table table-striped panel-body">
+            <tbody>
+            <tr>
+              <td>Author :</td>
+              <td class="text-right">${work.author.firstName} ${work.author.name} (${work.author.login})</td>
+            </tr>
+            <tr>
+              <td>Creation date :</td>
+              <td class="text-right"><fmt:formatDate value="${work.creationDate}" type="date" /></td>
+            </tr>
+            <tr>
+              <td>Location :</td>
+              <td class="text-right">${work.location}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <h3>Description</h3>
+        <div class="text">
+          <p>${work.description}</p>
+          <p>
+            <%@ include file="/WEB-INF/app/servlet/includes/cartButton.jsp"%>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <%@ include file="/WEB-INF/app/includes/footer.jsp"%>

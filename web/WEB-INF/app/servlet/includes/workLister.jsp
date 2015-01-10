@@ -34,7 +34,7 @@
           </div>
         </div>
         <p>
-          <a href="#" class="btn btn-primary">Add to cart</a>
+          <%@ include file="/WEB-INF/app/servlet/includes/cartButton.jsp"%>
           <a href="${rootUrl}/Work?id=${work.id}" class="btn btn-default">More details</a>
         </p>
       </div>
