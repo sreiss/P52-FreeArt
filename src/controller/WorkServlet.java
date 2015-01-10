@@ -51,6 +51,7 @@ public class WorkServlet extends HttpServlet {
     private RequestDispatcher list(HttpServletRequest request, HttpServletResponse response, RequestDispatcher requestDispatcher) throws ServletException, IOException {
         List<Work> works = workFacade.findAll();
 
+        request.setAttribute("pageTitle", "All our amazing pieces of art!");
         request.setAttribute("works", works);
         requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/work/list.jsp");
 
