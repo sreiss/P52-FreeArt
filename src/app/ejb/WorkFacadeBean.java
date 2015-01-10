@@ -5,6 +5,8 @@ import app.model.Work;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Simon on 09/01/2015.
@@ -21,5 +23,10 @@ public class WorkFacadeBean extends DataFacade {
 
     public WorkFacadeBean() {
         super(Work.class);
+    }
+
+    @Override
+    public List<Work> findAny(String search) {
+        return new ArrayList<Work>();
     }
 }

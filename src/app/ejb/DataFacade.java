@@ -1,6 +1,7 @@
 package app.ejb;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.List;
@@ -44,6 +45,8 @@ public abstract class DataFacade<T> {
                 .getResultList();
     }
 
+    public abstract List<T> findAny(String search);
+
     public int count() {
         CriteriaQuery criteriaQuery = getEntityManager()
                 .getCriteriaBuilder()
@@ -51,7 +54,7 @@ public abstract class DataFacade<T> {
 
         Root<T> root = criteriaQuery.from(entityClass);
         criteriaQuery.select(getEntityManager().getCriteriaBuilder().count(root));
-        javax.persistence.Query query = getEntityManager().createQuery(criteriaQuery);
+        Query query = getEntityManager().createQuery(criteriaQuery);
 
         return ((Long) query.getSingleResult()).intValue();
     }

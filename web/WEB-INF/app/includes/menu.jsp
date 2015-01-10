@@ -22,7 +22,7 @@
         <div class="form-group">
           <input type="text" class="form-control" placeholder="Search" name="search">
         </div>
-        <button type="submit" class="btn btn-default">Browse</button>
+        <button type="submit" class="btn btn-default">Search</button>
       </form>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->

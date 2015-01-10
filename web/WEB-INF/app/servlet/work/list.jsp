@@ -1,9 +1,9 @@
 <%@ include file="/WEB-INF/app/includes/header.jsp"%>
 
 <div class="container">
-  <h1>Works</h1>
+  <h1 class="text-center">Works</h1>
   <c:if test="${empty requestScope.works}">
-    No works where submitted for the time being!
+    <p class="text-center">No works where submitted for the time being!</p>
   </c:if>
   <c:if test="${not empty requestScope.works}">
     <c:forEach items="${requestScope.works}" var="work" varStatus="status">
