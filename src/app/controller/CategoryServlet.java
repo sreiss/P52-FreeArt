@@ -1,7 +1,7 @@
-package controller;
+package app.controller;
 
-import ejb.CategoryFacadeBean;
-import model.Category;
+import app.ejb.CategoryFacadeBean;
+import app.model.Category;
 
 import javax.ejb.EJB;
 import javax.servlet.RequestDispatcher;
@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.List;
 
 /**

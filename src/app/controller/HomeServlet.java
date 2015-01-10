@@ -1,4 +1,4 @@
-package controller;
+package app.controller;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;

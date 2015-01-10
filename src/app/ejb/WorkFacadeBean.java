@@ -1,6 +1,6 @@
-package ejb;
+package app.ejb;
 
-import model.Category;
+import app.model.Work;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -9,17 +9,17 @@ import javax.persistence.PersistenceContext;
 /**
  * Created by Simon on 09/01/2015.
  */
-@Stateless(name = "CategoryFacadeEJB")
-public class CategoryFacadeBean extends DataFacade {
-    @PersistenceContext(name = "FreeArt")
+@Stateless(name = "WorkFacadeEJB")
+public class WorkFacadeBean extends DataFacade {
+    @PersistenceContext(unitName = "FreeArt")
     private EntityManager entityManager;
-
-    public CategoryFacadeBean() {
-        super(Category.class);
-    }
 
     @Override
     protected EntityManager getEntityManager() {
         return entityManager;
+    }
+
+    public WorkFacadeBean() {
+        super(Work.class);
     }
 }

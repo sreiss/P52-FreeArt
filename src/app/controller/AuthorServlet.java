@@ -1,6 +1,5 @@
-package controller;
+package app.controller;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -9,13 +8,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Created by Andesite on 1/10/2015.
+ * Created by Simon on 09/01/2015.
  */
-@WebServlet("/Search")
-public class SearchServlet extends HttpServlet {
+@WebServlet("/Author")
+public class AuthorServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-        String errorMessage = "";
-        int errorCode = -1;
+
     }
 }

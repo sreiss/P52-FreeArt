@@ -1,6 +1,5 @@
-package ejb;
+package app.ejb;
 
-import javax.management.Query;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;

@@ -1,4 +1,4 @@
-package model;
+package app.model;
 
 import javax.persistence.*;
 import java.util.Collection;

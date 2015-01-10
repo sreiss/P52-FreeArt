@@ -1,7 +1,6 @@
-package ejb;
+package app.ejb;
 
-import javafx.scene.chart.PieChart;
-import model.Work;
+import app.model.Category;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -10,17 +9,17 @@ import javax.persistence.PersistenceContext;
 /**
  * Created by Simon on 09/01/2015.
  */
-@Stateless(name = "WorkFacadeEJB")
-public class WorkFacadeBean extends DataFacade {
-    @PersistenceContext(unitName = "FreeArt")
+@Stateless(name = "CategoryFacadeEJB")
+public class CategoryFacadeBean extends DataFacade {
+    @PersistenceContext(name = "FreeArt")
     private EntityManager entityManager;
+
+    public CategoryFacadeBean() {
+        super(Category.class);
+    }
 
     @Override
     protected EntityManager getEntityManager() {
         return entityManager;
-    }
-
-    public WorkFacadeBean() {
-        super(Work.class);
     }
 }

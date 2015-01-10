@@ -3,9 +3,9 @@
     <persistence-unit name="FreeArt" transaction-type="JTA">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
         <jta-data-source>jdbc/FreeArt</jta-data-source>
-        <class>model.Work</class>
-        <class>model.Author</class>
-        <class>model.Category</class>
+        <class>app.model.Work</class>
+        <class>app.model.Author</class>
+        <class>app.model.Category</class>
         <properties>
             <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
             <property name="eclipselink.create-ddl-jdbc-file-name" value="createDDL_ddlGeneration.jdbc"/>
