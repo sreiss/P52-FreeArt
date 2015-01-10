@@ -21,7 +21,7 @@
         <tbody>
           <c:forEach items="${requestScope.categories}" var="category">
             <tr>
-              <td><a href="${rootUrl}/Category?id=${category.id}" class="text-capitalize">${fn:toLowerCase(category.name)}</a></td>
+              <td><a href="${rootUrl}/Work?category&id=${category.id}" class="text-capitalize">${fn:toLowerCase(category.name)}</a></td>
               <td>${fn:length(category.works)}</td>
             </tr>
           </c:forEach>

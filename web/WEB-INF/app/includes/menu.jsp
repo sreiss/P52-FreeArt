@@ -15,7 +15,7 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
         <li><a href="${rootUrl}/Work">All Art</a></li>
-        <li><a href="${rootUrl}/Category">Categories</a></li>
+        <li><a href="${rootUrl}/Work?category">Categories</a></li>
         <li><a href="${rootUrl}/Author">Authors</a></li>
       </ul>
       <form class="navbar-form navbar-right" method="get" action="${rootUrl}/Search">

@@ -5,7 +5,7 @@
 <div class="container">
   <ol class="breadcrumb">
     <li><a href="${rootUrl}/Work">All Works</a></li>
-    <li><a href="${rootUrl}/Category">Categories</a></li>
+    <li><a href="${rootUrl}/Work?category">Categories</a></li>
     <li class="active text-capitalize">${fn:toLowerCase(category.name)}</li>
   </ol>
   <h1 class="text-center text-capitalize">${fn:toLowerCase(category.name)}</h1>
