@@ -25,6 +25,7 @@ public class Work {
     private String description;
     private Author author;
     private Category category;
+    private String thumbnail;
 
     @Id
     @Column(name = "id")
@@ -75,6 +76,12 @@ public class Work {
     public void setFile(String file) {
         this.file = file;
     }
+
+    @Basic
+    @Column(name = "thumbnail")
+    public String getThumbnail() { return thumbnail; }
+
+    public void setThumbnail(String thumbnail) { this.thumbnail = thumbnail; }
 
     @Basic
     @Column(name = "description")
