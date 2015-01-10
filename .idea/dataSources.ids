@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="dataSourceStorage">
+  <data-source name="FreeArt" uuid="febbd0a3-ce86-41c0-899a-de5773fd8d88">
+    <database-info product="MySQL" version="5.6.22-log" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.34 ( Revision: jess.balint@oracle.com-20141014163213-wqbwpf1ok2kvo1om )">
+      <extra-name-characters>#@</extra-name-characters>
+      <identifier-quote-string>`</identifier-quote-string>
+    </database-info>
+    <case-sensitivity plain-identifiers="lower" quoted-identifiers="lower"/>
+    <schema name="" catalog="freeart"/>
+    <table name="author" schema="" catalog="freeart" type="TABLE">
+      <column name="login" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="email" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="firstName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="work_ibfk_1" table="work" schema="" catalog="freeart" columns="authorId"/>
+    </table>
+    <table name="category" schema="" catalog="freeart" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="categoryId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="work_ibfk_2" table="work" schema="" catalog="freeart" columns="categoryId"/>
+      <index name="unique_name" unique="true" columns="name"/>
+      <index name="categoryId" unique="false" columns="categoryId"/>
+    </table>
+    <table name="work" schema="" catalog="freeart" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="title" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="location" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="creationDate" sqlType="DATETIME" precision="19" scale="0" nullable="true" jdbcType="93"/>
+      <column name="authorId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="categoryId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="file" sqlType="TEXT" precision="65535" scale="0" nullable="false" jdbcType="-1"/>
+      <column name="description" sqlType="TEXT" precision="65535" scale="0" nullable="false" jdbcType="-1"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="work_ibfk_1" columns="authorId" ref-table="author" ref-schema="" ref-catalog="freeart" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="work_ibfk_2" columns="categoryId" ref-table="category" ref-schema="" ref-catalog="freeart" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+    </table>
+  </data-source>
+</component>
