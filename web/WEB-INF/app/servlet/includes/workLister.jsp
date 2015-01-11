@@ -4,9 +4,11 @@
   </c:if>
   <div class="col-md-4">
     <div class="thumbnail">
-      <a href="${rootUrl}/Work?id=${work.id}">
-        <img src="${rootUrl}/thumbnails/${work.category.name}/${work.thumbnail}" alt="" />
-      </a>
+      <c:if test="${not empty work.thumbnail}">
+        <a href="${rootUrl}/Work?id=${work.id}">
+          <img src="${rootUrl}/thumbnails/${work.category.name}/${work.thumbnail}" alt="" />
+        </a>
+      </c:if>
       <div class="caption">
         <h3>${work.title}</h3>
         <div class="panel panel-default">

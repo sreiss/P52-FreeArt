@@ -38,7 +38,10 @@
         <div class="col-md-4 col-md-offset-4">
           <form method="post" action="${rootUrl}/Cart">
             <input type="hidden" name="action" value="download" />
-            <button class="btn btn-success full-width">Download my cart</button>
+            <button class="btn btn-success full-width">
+              <span class="glyphicon glyphicon-download"></span>
+              Download my cart
+            </button>
           </form>
         </div>
       </div>

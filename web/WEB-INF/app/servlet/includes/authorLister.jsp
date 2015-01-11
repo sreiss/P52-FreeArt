@@ -19,7 +19,7 @@
           <td class="vertical-align-middle">${author.firstName}</td>
           <td class="vertical-align-middle">${author.name}</td>
           <td class="vertical-align-middle text-right">
-            <a href="${rootUrl}/Work?author&login=${author.login}" class="btn btn-primary">Browse his work</a>
+            <a href="${rootUrl}/Work?author&login=${author.login}">Browse his work</a>
           </td>
         </tr>
       </c:forEach>

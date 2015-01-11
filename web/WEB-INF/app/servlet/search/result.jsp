@@ -13,7 +13,7 @@
     <p class="text-center">...no match where found for the search: "${search}"</p>
   </c:if>
   <c:if test="${not empty requestScope.works}">
-    <h2 class="text-center">Works found:</h2>
+    <h2 class="text-center">Works found</h2>
     <div class="panel panel-default">
       <table class="table table-striped">
         <thead>
@@ -38,11 +38,11 @@
     </div>
   </c:if>
   <c:if test="${not empty categories}">
-    <h2 class="text-center">Categories found:</h2>
+    <h2 class="text-center">Categories found</h2>
     <%@ include file="/WEB-INF/app/servlet/includes/categoryLister.jsp" %>
   </c:if>
   <c:if test="${not empty authors}">
-    <h2 class="text-center">Authors found:</h2>
+    <h2 class="text-center">Authors found</h2>
     <%@ include file="/WEB-INF/app/servlet/includes/authorLister.jsp" %>
   </c:if>
 </div>

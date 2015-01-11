@@ -24,7 +24,7 @@
   <c:forEach items="${audioExtensions}" var="audioExtension">
     <c:if test="${fileExtension eq audioExtension}">
       <div class="well">
-        <audio style="width: 100%;" src="${rootUrl}/uploads/${work.category.name}/${work.file}" type="audio/${audioExtension}" controls></audio>
+        <audio class="full-width" src="${rootUrl}/uploads/${work.category.name}/${work.file}" type="audio/${audioExtension}" controls></audio>
       </div>
     </c:if>
   </c:forEach>
