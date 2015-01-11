@@ -1,33 +1,18 @@
 <%@ include file="/WEB-INF/app/includes/header.jsp"%>
 
+<c:set var="categories" value="${requestScope.categories}"></c:set>
+
 <div class="container">
   <ol class="breadcrumb">
     <li><a href="${rootUrl}/Work">All Works</a></li>
     <li class="active">Categories</li>
   </ol>
   <h1 class="text-center">Categories</h1>
-  <c:if test="${empty requestScope.categories}">
+  <c:if test="${empty categories}">
     <p class="text-center">There are no categories!</p>
   </c:if>
-  <c:if test="${not empty requestScope.categories}">
-    <div class="panel panel-default">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <td>Name</td>
-            <td>Number of elements</td>
-          </tr>
-        </thead>
-        <tbody>
-          <c:forEach items="${requestScope.categories}" var="category">
-            <tr>
-              <td><a href="${rootUrl}/Work?category&id=${category.id}" class="text-capitalize">${fn:toLowerCase(category.name)}</a></td>
-              <td>${fn:length(category.works)}</td>
-            </tr>
-          </c:forEach>
-        </tbody>
-      </table>
-    </div>
+  <c:if test="${not empty categories}">
+    <%@ include file="/WEB-INF/app/servlet/category/categoryLister.jsp" %>
   </c:if>
 </div>
 

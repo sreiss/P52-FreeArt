@@ -31,21 +31,20 @@ public class CategoryFacadeBean extends DataFacade {
 
     @Override
     public List<Category> findAny(String search) {
+        search = "%" + search + "%";
+        
         CriteriaBuilder criteriaBuilder = getEntityManager()
                 .getCriteriaBuilder();
-
         CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(Category.class);
 
-        Root<Category> categoryRoot = criteriaQuery.from(Category.class);
-        criteriaQuery.select(categoryRoot);
-
+        Root<Category> root = criteriaQuery.from(Category.class);
         ParameterExpression<String> searchParameter = criteriaBuilder.parameter(String.class);
-        criteriaQuery.where(
-          criteriaBuilder.like(categoryRoot.<String>get("name"), searchParameter)
-        );
 
-        Query query = getEntityManager()
-                .createQuery(criteriaQuery);
+        criteriaQuery.select(root)
+                .where(criteriaBuilder.like(root.<String>get("name"), searchParameter));
+
+        Query query = getEntityManager().createQuery(criteriaQuery);
+            query.setParameter(searchParameter, search);
 
         return query.getResultList();
     }

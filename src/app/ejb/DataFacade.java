@@ -64,6 +64,7 @@ public abstract class DataFacade<T> {
                 .where(criteriaBuilder.equal(root.get("id"), entityId));
 
         Query query = getEntityManager().createQuery(criteriaQuery);
+            query.setParameter(entityId, id);
 
         return ((Long) query.getSingleResult()).intValue();
     }

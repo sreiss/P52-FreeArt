@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Free Art<c:if test="${requestScope.pageTitle != ''}"> - <c:out value="${requestScope.pageTitle}" /></c:if></title>
+        <title>Free Art!<c:if test="${not empty requestScope.pageTitle}"> - <c:out value="${requestScope.pageTitle}" /></c:if></title>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="${rootUrl}/lib/bootstrap/css/bootstrap.min.css" />
         <link rel="stylesheet" href="${rootUrl}/css/freeart.css" />

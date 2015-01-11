@@ -33,13 +33,16 @@ public class SearchServlet extends HttpServlet {
         int errorCode = -1;
 
         String search = request.getParameter("search");
-        if (!search.equals("")) {
+        if (search != null && !search.equals("")) {
             List<Work> works = workFacade.findAny(search);
             List<Category> categories = categoryFacade.findAny(search);
             request.setAttribute("pageTitle", MessageFormat.format("Search results for: {0}", search));
             request.setAttribute("works", works);
             request.setAttribute("categories", categories);
+            request.setAttribute("search", search);
             requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/search/result.jsp");
+        } else {
+            requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/index.jsp");
         }
 
         if (requestDispatcher != null && errorCode == -1) {
