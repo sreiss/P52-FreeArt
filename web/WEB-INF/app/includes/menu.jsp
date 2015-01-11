@@ -24,6 +24,9 @@
         </div>
         <button type="submit" class="btn btn-default">Search</button>
       </form>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="${rootUrl}/Cart"><span class="glyphicon glyphicon-shopping-cart"></span> My Cart</a></li>
+      </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
 </nav>

@@ -33,10 +33,14 @@
             <p>${work.description}</p>
           </div>
         </div>
-        <p>
-          <%@ include file="/WEB-INF/app/servlet/includes/cartButton.jsp"%>
-          <a href="${rootUrl}/Work?id=${work.id}" class="btn btn-default">More details</a>
-        </p>
+        <div class="row">
+          <div class="col-md-6">
+            <%@ include file="/WEB-INF/app/servlet/includes/cartButton.jsp"%>
+          </div>
+          <div class="col-md-6 text-right">
+            <a href="${rootUrl}/Work?id=${work.id}" class="btn btn-default">More details</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
