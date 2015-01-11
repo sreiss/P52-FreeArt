@@ -54,4 +54,21 @@ public class AuthorFacadeBean extends DataFacade {
 
         return query.getResultList();
     }
+
+    public Author findByLogin(String login) {
+        CriteriaBuilder criteriaBuilder = getEntityManager()
+                .getCriteriaBuilder();
+        CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(Author.class);
+
+        Root<Author> root = criteriaQuery.from(Author.class);
+        ParameterExpression<String> searchParameter = criteriaBuilder.parameter(String.class);
+
+        criteriaQuery.select(root)
+                .where(criteriaBuilder.equal(root.get("login"), searchParameter));
+
+        Query query = getEntityManager().createQuery(criteriaQuery);
+        query.setParameter(searchParameter, login);
+
+        return (Author) query.getSingleResult();
+    }
 }

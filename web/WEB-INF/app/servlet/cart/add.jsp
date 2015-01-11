@@ -28,7 +28,7 @@
       </c:if>
     </div>
   </c:if>
-  <%@ include file="/WEB-INF/app/servlet/cart/cartLister.jsp" %>
+  <%@ include file="/WEB-INF/app/servlet/includes/cartLister.jsp" %>
 </div>
 
 <%@ include file="/WEB-INF/app/includes/footer.jsp"%>

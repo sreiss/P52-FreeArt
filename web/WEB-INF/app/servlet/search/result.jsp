@@ -39,11 +39,11 @@
   </c:if>
   <c:if test="${not empty categories}">
     <h2 class="text-center">Categories found:</h2>
-    <%@ include file="/WEB-INF/app/servlet/category/categoryLister.jsp" %>
+    <%@ include file="/WEB-INF/app/servlet/includes/categoryLister.jsp" %>
   </c:if>
   <c:if test="${not empty authors}">
     <h2 class="text-center">Authors found:</h2>
-    <%@ include file="/WEB-INF/app/servlet/author/authorLister.jsp" %>
+    <%@ include file="/WEB-INF/app/servlet/includes/authorLister.jsp" %>
   </c:if>
 </div>
 

@@ -12,7 +12,7 @@
     <p class="text-center">There are no categories!</p>
   </c:if>
   <c:if test="${not empty categories}">
-    <%@ include file="/WEB-INF/app/servlet/category/categoryLister.jsp" %>
+    <%@ include file="/WEB-INF/app/servlet/includes/categoryLister.jsp" %>
   </c:if>
 </div>
 

@@ -29,9 +29,12 @@ public class WorkServlet extends HttpServlet {
         int errorCode = -1;
 
         String category = request.getParameter("category");
+        String author = request.getParameter("author");
 
         if (category != null) {
             requestDispatcher = request.getRequestDispatcher("/Category");
+        } else if (author != null) {
+            requestDispatcher = request.getRequestDispatcher("/Author");
         } else {
             int id;
             try {

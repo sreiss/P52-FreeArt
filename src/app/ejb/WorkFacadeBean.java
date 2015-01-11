@@ -1,5 +1,6 @@
 package app.ejb;
 
+import app.model.Author;
 import app.model.Work;
 
 import javax.ejb.Stateless;
@@ -54,6 +55,15 @@ public class WorkFacadeBean extends DataFacade {
 
         Query query = getEntityManager().createQuery(criteriaQuery);
         query.setParameter(searchParameter, search);
+
+        return query.getResultList();
+    }
+
+    public List<Work> findByAuthorId(int authorId) {
+        Query query = getEntityManager()
+                .createQuery("SELECT w FROM Work w, Author a WHERE a = w.author AND a.id = :authorId", Work.class);
+
+        query.setParameter("authorId", authorId);
 
         return query.getResultList();
     }

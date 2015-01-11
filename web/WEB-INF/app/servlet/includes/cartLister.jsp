@@ -23,7 +23,7 @@
           <td class="vertical-align-middle">${work.author.firstName} ${work.author.name} (${work.author.login})</td>
           <td class="vertical-align-middle"><fmt:formatDate value="${work.creationDate}" type="date"></fmt:formatDate></td>
           <td class="vertical-align-middle">
-            <form method="post" action="${rootUrl}/Cart">
+            <form method="post" action="${rootUrl}/Cart" class="pull-right">
               <input type="hidden" name="action" value="delete" />
               <input type="hidden" name="id" value="${work.id}" />
               <button class="btn btn-danger">Delete</button>
