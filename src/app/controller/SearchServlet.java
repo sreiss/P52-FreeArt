@@ -1,7 +1,9 @@
 package app.controller;
 
+import app.ejb.AuthorFacadeBean;
 import app.ejb.CategoryFacadeBean;
 import app.ejb.WorkFacadeBean;
+import app.model.Author;
 import app.model.Category;
 import app.model.Work;
 
@@ -27,6 +29,9 @@ public class SearchServlet extends HttpServlet {
     @EJB
     private WorkFacadeBean workFacade;
 
+    @EJB
+    private AuthorFacadeBean authorFacade;
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         RequestDispatcher requestDispatcher = null;
         String errorMessage = "";
@@ -36,9 +41,11 @@ public class SearchServlet extends HttpServlet {
         if (search != null && !search.equals("")) {
             List<Work> works = workFacade.findAny(search);
             List<Category> categories = categoryFacade.findAny(search);
+            List<Author> authors = authorFacade.findAny(search);
             request.setAttribute("pageTitle", MessageFormat.format("Search results for: {0}", search));
             request.setAttribute("works", works);
             request.setAttribute("categories", categories);
+            request.setAttribute("authors", authors);
             request.setAttribute("search", search);
             requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/search/result.jsp");
         } else {

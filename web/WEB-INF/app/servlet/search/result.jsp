@@ -2,12 +2,13 @@
 
 <c:set var="works" value="${requestScope.works}"></c:set>
 <c:set var="categories" value="${requestScope.categories}"></c:set>
+<c:set var="authors" value="${requestScope.authors}"></c:set>
 
 <div class="container">
   <ol class="breadcrumb">
     <li class="active">Search results for: "${search}"</li>
   </ol>
-  <c:if test="${empty works and empty categories}">
+  <c:if test="${empty works and empty categories and empty authors}">
     <h3 class="text-center">We're so sorry, but...</h3>
     <p class="text-center">...no match where found for the search: "${search}"</p>
   </c:if>
@@ -39,6 +40,10 @@
   <c:if test="${not empty categories}">
     <h2 class="text-center">Categories found:</h2>
     <%@ include file="/WEB-INF/app/servlet/category/categoryLister.jsp" %>
+  </c:if>
+  <c:if test="${not empty authors}">
+    <h2 class="text-center">Authors found:</h2>
+    <%@ include file="/WEB-INF/app/servlet/author/authorLister.jsp" %>
   </c:if>
 </div>
 
