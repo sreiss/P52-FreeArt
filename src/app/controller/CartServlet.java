@@ -11,9 +11,15 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Created by Andesite on 1/11/2015.
@@ -22,6 +28,8 @@ import java.util.List;
 public class CartServlet extends HttpServlet {
     @EJB
     private WorkFacadeBean workFacade;
+
+    private static int downloadCount = 0;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         RequestDispatcher requestDispatcher = null;
@@ -75,6 +83,7 @@ public class CartServlet extends HttpServlet {
             action = "";
 
         if (!action.equals("")) {
+
             int id;
             try {
                 id = Integer.parseInt(request.getParameter("id"));
@@ -82,8 +91,9 @@ public class CartServlet extends HttpServlet {
                 id = -1;
             }
 
+            Cookie cart = retrieveCartCookie(request);
+
             if (action.equals("add")) {
-                Cookie cart = retrieveCartCookie(request);
 
                 List<Work> works = list(cart);
                 boolean cartContainsWork = false;
@@ -112,8 +122,9 @@ public class CartServlet extends HttpServlet {
                 request.setAttribute("work", work);
                 request.setAttribute("works", works);
                 requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/add.jsp");
+
             } else if (action.equals("delete")) {
-                Cookie cart = retrieveCartCookie(request);
+
                 ArrayList<Work> initialWorks = (ArrayList<Work>) list(cart);
                 ArrayList<Work> works = (ArrayList<Work>) initialWorks.clone();
                 works = (ArrayList<Work>) delete(id, works);
@@ -133,6 +144,46 @@ public class CartServlet extends HttpServlet {
                 }
                 request.setAttribute("works", works);
                 requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/delete.jsp");
+
+            } else if (action.equals("download")) {
+
+                List<Work> works = list(cart);
+
+                byte[] buffer = new byte[1024];
+                String downloadName = MessageFormat.format("/FreeArtCart{0}.zip", CartServlet.downloadCount);
+                CartServlet.downloadCount += 1;
+
+                //try {
+
+                    File zip = File.createTempFile(downloadName, ".temp");
+                    FileOutputStream fileOutputStream = new FileOutputStream(zip);
+                    ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+                    ZipEntry zipEntry = new ZipEntry("zip.log");
+                    zipOutputStream.putNextEntry(zipEntry);
+
+                    for (Work work : works) {
+                        String uri = MessageFormat.format("{0}/uploads/{1}/{2}", request.getContextPath(), work.getCategory().getName(), work.getFile());
+                        FileInputStream fileInputStream = (FileInputStream) getServletContext().getResourceAsStream(uri);
+
+                        int fileLength;
+                        while ((fileLength = fileInputStream.read(buffer)) > 0) {
+                            zipOutputStream.write(buffer, 0, fileLength);
+                        }
+
+                        fileInputStream.close();
+                        zipOutputStream.closeEntry();
+                    }
+
+                    zipOutputStream.close();
+
+                    requestDispatcher = request.getRequestDispatcher(zip.getParent());
+                /*} catch (IOException e){
+
+                    errorCode = 500;
+                    errorMessage = "An error occured while trying to create your downloadable archive. Please retry.";
+
+                }*/
+
             } else {
                 errorCode = 401;
                 errorMessage = "This action is not authorized!";
