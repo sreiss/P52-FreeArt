@@ -6,6 +6,7 @@
 
 <div class="container">
   <ol class="breadcrumb">
+    <li><a href="${rootUrl}/Work">All works</a></li>
     <li><a href="${rootUrl}/Author">Authors</a></li>
     <li class="current">${login}</li>
   </ol>
