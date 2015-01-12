@@ -3,10 +3,16 @@
 <div class="container">
   <div class="row">
     <div class="col-md-4 col-md-offset-4">
-      <c:if test="${not empty requestScope.loginErrorMessage}">
+      <c:if test="${not empty requestScope.error}">
         <div class="alert alert-danger alert-dismissable">
           <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
-          <span class="glyphicon glyphicon-warning-sign"></span> ${requestScope.loginErrorMessage}
+          <span class="glyphicon glyphicon-warning-sign"></span>
+          <c:if test="${requestScope.error == 'invalidpassword'}">
+            Wrong password! Please retry.
+          </c:if>
+          <c:if test="${requestScope.error == 'invaliduser'}">
+            No user found with this username.
+          </c:if>
         </div>
       </c:if>
       <p class="text-center">Login to start uploading your own creations!</p>
