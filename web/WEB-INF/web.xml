@@ -13,4 +13,12 @@
     <error-page>
         <location>/WEB-INF/app/error/default.jsp</location>
     </error-page>
+    <filter>
+        <filter-name>CryptographyFilter</filter-name>
+        <filter-class>app.filter.CryptographyFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CryptographyFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 </web-app>

@@ -23,7 +23,7 @@
               <a href="${rootUrl}/Account?action=signup">Sign up</a>
             </p>
             <input type="hidden" name="action" value="login" />
-            <input type="hidden" name="secret" value="1586231455" />
+            <!--<input type="hidden" name="secret" value="1586231455" />-->
             <input type="submit" class="btn-block btn btn-primary" />
           </form>
         </div>
