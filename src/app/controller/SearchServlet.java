@@ -33,29 +33,32 @@ public class SearchServlet extends HttpServlet {
     private AuthorFacadeBean authorFacade;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-        String errorMessage = "";
-        int errorCode = -1;
-
         String search = request.getParameter("search");
-        if (search != null && !search.equals("")) {
-            List<Work> works = workFacade.findAny(search);
-            List<Category> categories = categoryFacade.findAny(search);
-            List<Author> authors = authorFacade.findAny(search);
-            request.setAttribute("pageTitle", MessageFormat.format("Search results for: {0}", search));
-            request.setAttribute("works", works);
-            request.setAttribute("categories", categories);
-            request.setAttribute("authors", authors);
-            request.setAttribute("search", search);
-            requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/search/result.jsp");
-        } else {
-            requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/index.jsp");
-        }
 
-        if (requestDispatcher != null && errorCode == -1) {
-            requestDispatcher.forward(request, response);
+        if (search != null && !search.equals("")) {
+            search(request, response, search);
         } else {
-            response.sendError(errorCode, errorMessage);
+            home(request, response);
         }
+    }
+
+    private void search(HttpServletRequest request, HttpServletResponse response, String search) throws ServletException, IOException {
+        List<Work> works = workFacade.findAny(search);
+        List<Category> categories = categoryFacade.findAny(search);
+        List<Author> authors = authorFacade.findAny(search);
+
+        request.setAttribute("pageTitle", MessageFormat.format("Search results for: {0}", search));
+        request.setAttribute("works", works);
+        request.setAttribute("categories", categories);
+        request.setAttribute("authors", authors);
+        request.setAttribute("search", search);
+
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/search/result.jsp");
+        requestDispatcher.forward(request, response);
+    }
+
+    private void home(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/Home");
+        requestDispatcher.forward(request, response);
     }
 }

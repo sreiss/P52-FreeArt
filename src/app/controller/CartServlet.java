@@ -32,190 +32,143 @@ public class CartServlet extends HttpServlet {
     private static int downloadCount = 0;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-        String errorMessage = "";
-        int errorCode = -1;
-
-        Cookie cart = retrieveCartCookie(request);
-
-        List<Work> works = list(cart);
-        request.setAttribute("pageTitle", "My cart");
-        request.setAttribute("works", works);
-        requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/list.jsp");
-
-        if (requestDispatcher != null && errorCode == -1) {
-            requestDispatcher.forward(request, response);
-        } else {
-            response.sendError(errorCode, errorMessage);
-        }
+        list(request, response);
     }
 
     // GET /Cart
-    private List<Work> list(Cookie cart) {
-        ArrayList<Work> works = new ArrayList<Work>();
 
-        if (cart != null) {
-            String sItems = cart.getValue();
-            String[] sItemIds = sItems.split(",");
-            ArrayList<Integer> itemIds = new ArrayList<Integer>();
-            for (String sItem : sItemIds) {
-                try {
-                    itemIds.add(Integer.parseInt(sItem));
-                } catch (NumberFormatException e) {
+    private void list(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Cookie cart = retrieveCartCookie(request);
+        List<Work> works = getCartWorksList(cart);
 
-                }
-            }
-            for (int id : itemIds) {
-                works.add((Work) workFacade.find(id));
-            }
-        }
-
-        return works;
+        request.setAttribute("pageTitle", "My cart");
+        request.setAttribute("works", works);
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/list.jsp");
+        requestDispatcher.forward(request, response);
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-        String errorMessage = "";
-        int errorCode = -1;
-
         String action = request.getParameter("action");
-        if (action == null)
-            action = "";
 
-        if (!action.equals("")) {
+        int id;
+        try {
+            id = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException e) {
+            id = -1;
+        }
 
-            int id;
-            try {
-                id = Integer.parseInt(request.getParameter("id"));
-            } catch (NumberFormatException e) {
-                id = -1;
-            }
 
-            Cookie cart = retrieveCartCookie(request);
-
+        if (action != null) {
             if (action.equals("add")) {
-
-                List<Work> works = list(cart);
-                boolean cartContainsWork = false;
-                for (Work inCartWork : works) {
-                    if (inCartWork.getId() == id) {
-                        cartContainsWork = true;
-                        break;
-                    }
-                }
-
-                Work work = null;
-                if (!cartContainsWork) {
-                    work = add(id);
-                    works.add(work);
-                    String cartString = "";
-                    if (cart != null) {
-                        cartString = buildCartString(works);
-                        cart.setValue(cartString);
-                    } else {
-                        cart = new Cookie("cart", "" + id);
-                    }
-                    response.addCookie(cart);
-                }
-
-                request.setAttribute("pageTitle", "Adding work");
-                request.setAttribute("work", work);
-                request.setAttribute("works", works);
-                requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/add.jsp");
-
+                add(request, response, id);
             } else if (action.equals("delete")) {
-
-                ArrayList<Work> initialWorks = (ArrayList<Work>) list(cart);
-                ArrayList<Work> works = (ArrayList<Work>) initialWorks.clone();
-                works = (ArrayList<Work>) delete(id, works);
-                if (initialWorks.size() == works.size()) {
-                    request.setAttribute("pageTitle", "Error while deleting");
-                    request.setAttribute("deleted", false);
-                } else {
-                    request.setAttribute("pageTitle", "Successfully deleted");
-                    request.setAttribute("deleted", true);
-                    if (cart != null) {
-                        String cartString = buildCartString(works);
-                        cart.setValue(cartString);
-                    } else {
-                        cart = new Cookie("cart", "");
-                    }
-                    response.addCookie(cart);
-                }
-                request.setAttribute("works", works);
-                requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/delete.jsp");
-
+                delete(request, response, id);
             } else if (action.equals("download")) {
-
-                List<Work> works = list(cart);
-
-                byte[] buffer = new byte[1024];
-                String downloadName = MessageFormat.format("/FreeArtCart{0}.zip", CartServlet.downloadCount);
-                CartServlet.downloadCount += 1;
-
-                //try {
-
-                    File zip = File.createTempFile(downloadName, ".temp");
-                    FileOutputStream fileOutputStream = new FileOutputStream(zip);
-                    ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-                    ZipEntry zipEntry = new ZipEntry("zip.log");
-                    zipOutputStream.putNextEntry(zipEntry);
-
-                    for (Work work : works) {
-                        String uri = MessageFormat.format("{0}/uploads/{1}/{2}", request.getContextPath(), work.getCategory().getName(), work.getFile());
-                        FileInputStream fileInputStream = (FileInputStream) getServletContext().getResourceAsStream(uri);
-
-                        int fileLength;
-                        while ((fileLength = fileInputStream.read(buffer)) > 0) {
-                            zipOutputStream.write(buffer, 0, fileLength);
-                        }
-
-                        fileInputStream.close();
-                        zipOutputStream.closeEntry();
-                    }
-
-                    zipOutputStream.close();
-
-                    requestDispatcher = request.getRequestDispatcher(zip.getParent());
-                /*} catch (IOException e){
-
-                    errorCode = 500;
-                    errorMessage = "An error occured while trying to create your downloadable archive. Please retry.";
-
-                }*/
-
-            } else {
-                errorCode = 401;
-                errorMessage = "This action is not authorized!";
+                download(request, response, id);
             }
         } else {
-            errorCode = 401;
-            errorMessage = "You can't browse your cart with POST method!";
+            response.sendRedirect(MessageFormat.format("{0}/Cart", request.getContextPath()));
         }
-
-        if (requestDispatcher != null && errorCode == -1) {
-            requestDispatcher.forward(request, response);
-        } else {
-            response.sendError(errorCode, errorMessage);
-        }
-    }
-
-    // POST /Cart {id}
-    private Work add(int id) {
-        return (Work) workFacade.find(id);
     }
 
     // DELETE /Cart?id={id}
-    private List<Work> delete(int id, List<Work> works) {
+    private void delete(HttpServletRequest request, HttpServletResponse response, int id) throws ServletException, IOException {
+        Cookie cart = retrieveCartCookie(request);
+        ArrayList<Work> initialWorks = (ArrayList<Work>) getCartWorksList(cart);
+        ArrayList<Work> works = (ArrayList<Work>) initialWorks.clone();
         for (Work work: works) {
             if (work.getId() == id) {
                 works.remove(work);
                 break;
             }
         }
-
-        return works;
+        if (initialWorks.size() == works.size()) {
+            request.setAttribute("pageTitle", "Error while deleting");
+            request.setAttribute("deleted", false);
+        } else {
+            request.setAttribute("pageTitle", "Successfully deleted");
+            request.setAttribute("deleted", true);
+            if (cart != null) {
+                String cartString = buildCartString(works);
+                cart.setValue(cartString);
+            } else {
+                cart = new Cookie("cart", "");
+            }
+            response.addCookie(cart);
+        }
+        request.setAttribute("works", works);
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/delete.jsp");
+        requestDispatcher.forward(request, response);
     }
+
+    private void add(HttpServletRequest request, HttpServletResponse response, int id) throws ServletException, IOException {
+        Cookie cart = retrieveCartCookie(request);
+        List<Work> works = getCartWorksList(cart);
+        boolean cartContainsWork = false;
+        for (Work inCartWork : works) {
+            if (inCartWork.getId() == id) {
+                cartContainsWork = true;
+                break;
+            }
+        }
+
+        Work work = null;
+        if (!cartContainsWork) {
+            work = (Work) workFacade.find(id);;
+            works.add(work);
+            String cartString = "";
+            if (cart != null) {
+                cartString = buildCartString(works);
+                cart.setValue(cartString);
+            } else {
+                cart = new Cookie("cart", "" + id);
+            }
+            response.addCookie(cart);
+        }
+
+        request.setAttribute("pageTitle", "Adding work");
+        request.setAttribute("work", work);
+        request.setAttribute("works", works);
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/add.jsp");
+        requestDispatcher.forward(request, response);
+    }
+
+    private void download(HttpServletRequest request, HttpServletResponse response, int id) throws ServletException, IOException {
+        Cookie cart = retrieveCartCookie(request);
+        List<Work> works = getCartWorksList(cart);
+
+        byte[] buffer = new byte[1024];
+        String downloadName = MessageFormat.format("/FreeArtCart{0}.zip", CartServlet.downloadCount);
+        CartServlet.downloadCount += 1;
+
+        //try {
+
+        File zip = File.createTempFile(downloadName, ".temp");
+        FileOutputStream fileOutputStream = new FileOutputStream(zip);
+        ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+        ZipEntry zipEntry = new ZipEntry("zip.log");
+        zipOutputStream.putNextEntry(zipEntry);
+
+        for (Work work : works) {
+            String uri = MessageFormat.format("{0}/uploads/{1}/{2}", request.getContextPath(), work.getCategory().getName(), work.getFile());
+            FileInputStream fileInputStream = (FileInputStream) getServletContext().getResourceAsStream(uri);
+
+            int fileLength;
+            while ((fileLength = fileInputStream.read(buffer)) > 0) {
+                zipOutputStream.write(buffer, 0, fileLength);
+            }
+
+            fileInputStream.close();
+            zipOutputStream.closeEntry();
+        }
+
+        zipOutputStream.close();
+
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher(zip.getParent());
+        requestDispatcher.forward(request, response);
+    }
+
+    // utils
 
     private Cookie retrieveCartCookie (HttpServletRequest request) {
         Cookie cart = null;
@@ -240,4 +193,27 @@ public class CartServlet extends HttpServlet {
 
         return cartString;
     }
+
+    private List<Work> getCartWorksList(Cookie cart) {
+        ArrayList<Work> works = new ArrayList<Work>();
+
+        if (cart != null) {
+            String sItems = cart.getValue();
+            String[] sItemIds = sItems.split(",");
+            ArrayList<Integer> itemIds = new ArrayList<Integer>();
+            for (String sItem : sItemIds) {
+                try {
+                    itemIds.add(Integer.parseInt(sItem));
+                } catch (NumberFormatException e) {
+
+                }
+            }
+            for (int id : itemIds) {
+                works.add((Work) workFacade.find(id));
+            }
+        }
+
+        return works;
+    }
+
 }

@@ -10,6 +10,7 @@ import java.util.Collection;
 @Table(name = "author", uniqueConstraints = @UniqueConstraint(columnNames = {"id", "login"}))
 public class Author {
     private String login;
+    private String password;
     private String email;
     private String name;
     private String firstName;
@@ -25,6 +26,12 @@ public class Author {
     public void setLogin(String login) {
         this.login = login;
     }
+
+    @Basic
+    @Column(name = "password")
+    public String getPassword() { return password; }
+
+    public void setPassword(String password) { this.password = password; }
 
     @Basic
     @Column(name = "email")

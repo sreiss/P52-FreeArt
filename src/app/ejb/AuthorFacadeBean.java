@@ -4,6 +4,7 @@ import app.model.Author;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -69,6 +70,10 @@ public class AuthorFacadeBean extends DataFacade {
         Query query = getEntityManager().createQuery(criteriaQuery);
         query.setParameter(searchParameter, login);
 
-        return (Author) query.getSingleResult();
+        try {
+            return (Author) query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 }

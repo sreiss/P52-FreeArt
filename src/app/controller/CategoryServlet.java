@@ -22,13 +22,7 @@ public class CategoryServlet extends HttpServlet {
     @EJB
     private CategoryFacadeBean categoryFacade;
 
-    // region GET
-
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-        String errorMessage = "";
-        int errorCode = -1;
-
         int id;
         try {
             id = Integer.parseInt(request.getParameter("id"));
@@ -37,82 +31,52 @@ public class CategoryServlet extends HttpServlet {
         }
 
         if (id > 0) {
-            Category category = get(id);
-            if (category != null) {
-                request.setAttribute("pageTitle", category.getName());
-                request.setAttribute("category", category);
-                requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/category/get.jsp");
-            } else {
-                errorMessage = "This category doesn't exist!";
-                errorCode = 404;
-            }
+            get(request, response, id);
         } else {
-            List<Category> categories = list();
-            request.setAttribute("pageTitle", "Categories");
-            request.setAttribute("categories", categories);
-            requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/category/list.jsp");
+            list(request, response);
         }
-
-        if (requestDispatcher != null && errorCode == -1) {
-            requestDispatcher.forward(request, response);
-        } else {
-            response.sendError(errorCode, errorMessage);
-        }
-    }
-
-    // GET /Category?id={id}
-    private Category get(int id) {
-        return (Category) categoryFacade.find(id);
     }
 
     // GET /Category
-    private List<Category> list() {
-        return categoryFacade.findAll();
+    private void list(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<Category> categories = categoryFacade.findAll();
+        request.setAttribute("pageTitle", "Categories");
+        request.setAttribute("categories", categories);
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/category/list.jsp");
+        requestDispatcher.forward(request, response);
     }
 
-    // endregion
-
-    // region POST
-
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-
-        try {
-            Category category = new Category();
-            category.setName(request.getParameter("name"));
-            categoryFacade.create(category);
-
-            request.setAttribute("pageTitle", MessageFormat.format("Category {0} created", category));
+    // GET /Category?id={id}
+    private void get(HttpServletRequest request, HttpServletResponse response, int id) throws ServletException, IOException {
+        Category category = (Category) categoryFacade.find(id);
+        if (category != null) {
+            request.setAttribute("pageTitle", category.getName());
             request.setAttribute("category", category);
-            requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/category/create.jsp");
-        } catch (IllegalArgumentException e) {
-
-        }
-
-        if (requestDispatcher != null) {
+            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/category/get.jsp");
             requestDispatcher.forward(request, response);
         } else {
-            response.sendError(404);
+            response.sendError(404, "This category doesn't exist!");
+        }
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        if (action != null) {
+            if (action.equals("create")) {
+                create(request, response);
+            }
         }
     }
 
     // POST /Category
-    private Category create(Category category) {
+    private void create(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Category category = new Category();
+        category.setName(request.getParameter("name"));
         categoryFacade.create(category);
-        return category;
-    }
 
-    // endregion
-
-    // PUT /Category
-    private Category update(Category category) {
-        categoryFacade.update(category);
-        return category;
-    }
-
-    // DELETE /Category
-    private Category delete(Category category) {
-        categoryFacade.delete(category);
-        return category;
+        request.setAttribute("pageTitle", MessageFormat.format("Category {0} created", category));
+        request.setAttribute("category", category);
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/category/create.jsp");
+        requestDispatcher.forward(request, response);
     }
 }

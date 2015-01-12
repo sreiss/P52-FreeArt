@@ -18,13 +18,14 @@
         <li><a href="${rootUrl}/Work?category">Categories</a></li>
         <li><a href="${rootUrl}/Author">Authors</a></li>
       </ul>
-      <form class="navbar-form navbar-right" method="get" action="${rootUrl}/Search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search" name="search">
-        </div>
-        <button type="submit" class="btn btn-default">Search</button>
-      </form>
       <ul class="nav navbar-nav navbar-right">
+        <c:if test="${not empty sessionScope.currentAuthor}">
+          <li><a href="${rootUrl}/Authentication?action=logout">Logout</a></li>
+          <li><a href="${rootUrl}/Account">My Account</a></li>
+        </c:if>
+        <c:if test="${empty sessionScope.currentAuthor}">
+          <li><a href="${rootUrl}/Authentication">Login</a></li>
+        </c:if>
         <li><a href="${rootUrl}/Cart"><span class="glyphicon glyphicon-shopping-cart"></span> My Cart</a></li>
       </ul>
     </div><!-- /.navbar-collapse -->

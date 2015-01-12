@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * Created by Simon on 09/01/2015.
@@ -24,52 +25,53 @@ public class WorkServlet extends HttpServlet {
     private WorkFacadeBean workFacade;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-        String errorMessage = "";
-        int errorCode = -1;
-
+        int id;
+        try {
+            id = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException e) {
+            id = -1;
+        }
         String category = request.getParameter("category");
         String author = request.getParameter("author");
 
         if (category != null) {
-            requestDispatcher = request.getRequestDispatcher("/Category");
+            category(request, response, id);
         } else if (author != null) {
-            requestDispatcher = request.getRequestDispatcher("/Author");
+            author(request, response, id);
+        } else if (id > 0) {
+            get(request, response, id);
         } else {
-            int id;
-            try {
-                id = Integer.parseInt(request.getParameter("id"));
-            } catch (NumberFormatException e) {
-                id = -1;
-            }
-
-            if (id > 0) {
-                Work work = (Work) workFacade.find(id);
-                if (work != null) {
-                    request.setAttribute("pageTitle", work.getTitle());
-                    request.setAttribute("work", work);
-                    requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/work/get.jsp");
-                } else {
-                    errorCode = 404;
-                    errorMessage = "No work under this name where found";
-                }
-            } else {
-                List<Work> works = list();
-                request.setAttribute("pageTitle", "All works!");
-                request.setAttribute("works", works);
-                requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/work/list.jsp");
-            }
-        }
-
-        if (requestDispatcher != null && errorCode == -1) {
-            requestDispatcher.forward(request, response);
-        } else {
-            response.sendError(errorCode, errorMessage);
+            list(request, response);
         }
     }
 
-    // GET /Work
-    private List<Work> list() {
-        return workFacade.findAll();
+    private void get(HttpServletRequest request, HttpServletResponse response, int id) throws ServletException, IOException {
+        Work work = (Work) workFacade.find(id);
+        if (work != null) {
+            request.setAttribute("pageTitle", work.getTitle());
+            request.setAttribute("work", work);
+            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/work/get.jsp");
+            requestDispatcher.forward(request, response);
+        } else {
+            response.sendError(404, "No work with this identifier was found!");
+        }
+    }
+
+    private void list(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<Work> works = workFacade.findAll();
+        request.setAttribute("pageTitle", "All works!");
+        request.setAttribute("works", works);
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/work/list.jsp");
+        requestDispatcher.forward(request, response);
+    }
+
+    private void category(HttpServletRequest request, HttpServletResponse response, int id) throws ServletException, IOException {
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/Category");
+        requestDispatcher.forward(request, response);
+    }
+
+    private void author(HttpServletRequest request, HttpServletResponse response, int id) throws ServletException, IOException {
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/Author");
+        requestDispatcher.forward(request, response);
     }
 }

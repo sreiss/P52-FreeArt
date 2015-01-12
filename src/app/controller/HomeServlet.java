@@ -13,21 +13,13 @@ import java.io.IOException;
  */
 @WebServlet("/Home")
 public class HomeServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        index(request, response);
     }
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        RequestDispatcher requestDispatcher = null;
-        String errorMessage = "";
-        int errorCode = -1;
-
-        requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/index.jsp");
-
-        if (requestDispatcher != null && errorCode == -1) {
-            requestDispatcher.forward(request, response);
-        } else {
-            response.sendError(errorCode, errorMessage);
-        }
+    private void index(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/index.jsp");
+        requestDispatcher.forward(request, response);
     }
 }
