@@ -37,6 +37,8 @@ public class AccountServlet extends HttpServlet {
             postLogin(request, response);
         } else if (action.equals("update")) {
             updateInfos(request, response);
+        } else if (action.equals("signup")) {
+            postSignup(request, response);
         }
     }
 
@@ -87,6 +89,8 @@ public class AccountServlet extends HttpServlet {
             getLogin(request, response);
         } else if (action.equals("logout")) {
             logout(request, response);
+        } else if (action.equals("signup")) {
+            getSignup(request, response);
         } else {
             getAccount(request, response);
         }
@@ -102,11 +106,11 @@ public class AccountServlet extends HttpServlet {
 
         if (!password.equals(passwordRepeat)) {
             response.sendRedirect(
-                    MessageFormat.format("{0}/Account?error=invalidpassword", request.getContextPath())
+                    MessageFormat.format("{0}/Account?action=signup&error=invalidpassword", request.getContextPath())
             );
         } else if (authorFacade.count(login) > 0) {
             response.sendRedirect(
-                    MessageFormat.format("{0}/Account?error=existingusername", request.getContextPath())
+                    MessageFormat.format("{0}/Account?action=signup&error=existingusername", request.getContextPath())
             );
         } else {
             Author author = new Author();
@@ -114,15 +118,21 @@ public class AccountServlet extends HttpServlet {
             author.setName(name);
             author.setFirstName(firstName);
             author.setEmail(email);
-            author.setPassword(password);
+            author.setPassword(hashPassword(password));
 
             try {
                 authorFacade.create(author);
             } catch (Exception e) {
                 response.sendRedirect(
-                        MessageFormat.format("{0}/Account?error=errorwhilesaving", request.getContextPath())
+                        MessageFormat.format("{0}/Account?action=signup&error=errorwhilesaving", request.getContextPath())
                 );
             }
+
+            request.getSession().setAttribute("currentAuthor", author);
+
+            response.sendRedirect(
+                    MessageFormat.format("{0}/Account?message=accountcreated", request.getContextPath())
+            );
         }
     }
 
@@ -176,6 +186,8 @@ public class AccountServlet extends HttpServlet {
                 request.setAttribute("message", "Your data was successfully updated.");
             } else if (message.equals("passwordupdatesuccess")) {
                 request.setAttribute("message", "Ahhhhh, you son of a gun! you have a new password! gg, bro ;)");
+            } else if (message.equals("accountcreated")) {
+                request.setAttribute("message", "You successfully created an account!");
             }
         }
 
