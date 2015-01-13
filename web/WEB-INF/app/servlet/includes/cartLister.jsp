@@ -44,6 +44,15 @@
             </button>
           </form>
         </div>
+        <div class="col-md-2 col-md-offset-2 pull-right">
+          <form method="post" action="${rootUrl}/Cart">
+            <input type="hidden" name="action" value="empty" />
+            <button class="btn btn-danger full-width">
+              <span class="glyphicon glyphicon-download"></span>
+              Empty my cart
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   </div>

@@ -5,16 +5,14 @@ import app.model.Work;
 
 import javax.ejb.EJB;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +27,6 @@ public class CartServlet extends HttpServlet {
     @EJB
     private WorkFacadeBean workFacade;
 
-    private static int downloadCount = 0;
-
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         list(request, response);
     }
@@ -38,6 +34,13 @@ public class CartServlet extends HttpServlet {
     // GET /Cart
 
     private void list(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String message = request.getParameter("message");
+        if (message != null) {
+            if (message.equals("cartemptied")) {
+                request.setAttribute("message", "Cart successfully emptied!");
+            }
+        }
+
         Cookie cart = retrieveCartCookie(request);
         List<Work> works = getCartWorksList(cart);
 
@@ -45,6 +48,12 @@ public class CartServlet extends HttpServlet {
         request.setAttribute("works", works);
         RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/cart/list.jsp");
         requestDispatcher.forward(request, response);
+    }
+
+    private void empty(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Cookie emptyCart = emptyCart(request);
+        response.addCookie(emptyCart);
+        response.sendRedirect(MessageFormat.format("{0}/Cart?message=cartemptied", request.getContextPath()));
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -65,6 +74,8 @@ public class CartServlet extends HttpServlet {
                 delete(request, response, id);
             } else if (action.equals("download")) {
                 download(request, response, id);
+            } else if (action.equals("empty")) {
+                empty(request, response);
             }
         } else {
             response.sendRedirect(MessageFormat.format("{0}/Cart", request.getContextPath()));
@@ -137,38 +148,42 @@ public class CartServlet extends HttpServlet {
         Cookie cart = retrieveCartCookie(request);
         List<Work> works = getCartWorksList(cart);
 
-        byte[] buffer = new byte[1024];
-        String downloadName = MessageFormat.format("/FreeArtCart{0}.zip", CartServlet.downloadCount);
-        CartServlet.downloadCount += 1;
+        ServletContext servletContext = getServletConfig().getServletContext();
+        String path = servletContext.getRealPath("uploads");
 
-        //try {
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition", "attachment;filename=my-free-art-cart.zip");
 
-        File zip = File.createTempFile(downloadName, ".temp");
-        FileOutputStream fileOutputStream = new FileOutputStream(zip);
-        ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-        ZipEntry zipEntry = new ZipEntry("zip.log");
-        zipOutputStream.putNextEntry(zipEntry);
-
-        for (Work work : works) {
-            String uri = MessageFormat.format("{0}/uploads/{1}/{2}", request.getContextPath(), work.getCategory().getName(), work.getFile());
-            FileInputStream fileInputStream = (FileInputStream) getServletContext().getResourceAsStream(uri);
-
-            int fileLength;
-            while ((fileLength = fileInputStream.read(buffer)) > 0) {
-                zipOutputStream.write(buffer, 0, fileLength);
-            }
-
-            fileInputStream.close();
-            zipOutputStream.closeEntry();
-        }
-
+        ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+        zipThis(path, works, zipOutputStream);
         zipOutputStream.close();
-
-        RequestDispatcher requestDispatcher = request.getRequestDispatcher(zip.getParent());
-        requestDispatcher.forward(request, response);
     }
 
     // utils
+
+    private void zipThis(String path, List<Work> works, ZipOutputStream zipOutputStream)  {
+        List<String> filePaths = new ArrayList<String>();
+        for (Work work: works) {
+            filePaths.add(MessageFormat.format("{0}/{1}/{2}", path, work.getCategory().getName(), work.getFile()));
+        }
+
+        byte[] buffer = new byte[1024];
+        int fileBytes = 0;
+        for (String filePath: filePaths) {
+            try {
+                File file = new File(filePath);
+                FileInputStream fileInputStream = new FileInputStream(file);
+                ZipEntry zipEntry = new ZipEntry(file.getName());
+                zipOutputStream.putNextEntry(zipEntry);
+                while ((fileBytes = fileInputStream.read(buffer)) != -1) {
+                    zipOutputStream.write(buffer, 0, fileBytes);
+                }
+                fileInputStream.close();
+            } catch (IOException e) {
+
+            }
+        }
+    }
 
     private Cookie retrieveCartCookie (HttpServletRequest request) {
         Cookie cart = null;
@@ -180,6 +195,14 @@ public class CartServlet extends HttpServlet {
         }
 
         return  cart;
+    }
+
+    private Cookie emptyCart (HttpServletRequest request) {
+        Cookie cart = retrieveCartCookie(request);
+        cart.setValue(null);
+        cart.setMaxAge(0);
+
+        return cart;
     }
 
     private String buildCartString (List<Work> works) {
@@ -215,5 +238,4 @@ public class CartServlet extends HttpServlet {
 
         return works;
     }
-
 }
