@@ -1,6 +1,7 @@
 package app.controller;
 
 import app.ejb.AuthorFacadeBean;
+import app.error.ErrorManager;
 import app.model.Author;
 import org.omg.CORBA.Request;
 
@@ -91,6 +92,58 @@ public class AccountServlet extends HttpServlet {
         }
     }
 
+    private void postSignup(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {
+        String login = request.getParameter("login");
+        String name = request.getParameter("name");
+        String firstName = request.getParameter("firstName");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+        String passwordRepeat = request.getParameter("passwordRepeat");
+
+        if (!password.equals(passwordRepeat)) {
+            response.sendRedirect(
+                    MessageFormat.format("{0}/Account?error=invalidpassword", request.getContextPath())
+            );
+        } else if (authorFacade.count(login) > 0) {
+            response.sendRedirect(
+                    MessageFormat.format("{0}/Account?error=existingusername", request.getContextPath())
+            );
+        } else {
+            Author author = new Author();
+            author.setLogin(login);
+            author.setName(name);
+            author.setFirstName(firstName);
+            author.setEmail(email);
+            author.setPassword(password);
+
+            try {
+                authorFacade.create(author);
+            } catch (Exception e) {
+                response.sendRedirect(
+                        MessageFormat.format("{0}/Account?error=errorwhilesaving", request.getContextPath())
+                );
+            }
+        }
+    }
+
+    private void getSignup(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {
+        if (request.getSession().getAttribute("currentAuthor") != null) {
+            response.sendRedirect(
+                    MessageFormat.format("{0}/Account", request.getContextPath())
+            );
+        } else {
+            String error = request.getParameter("error");
+            if (error != null) {
+                ErrorManager errorManager = ErrorManager.getInstance();
+                String errorMessage = errorManager.findError("signup", error);
+                request.setAttribute("errorMessage", errorMessage);
+            }
+
+            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getSignup.jsp");
+            requestDispatcher.forward(request, response);
+        }
+    }
+
     private void getLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         if (request.getSession().getAttribute("currentAuthor") != null) {
             response.sendRedirect(
@@ -99,13 +152,9 @@ public class AccountServlet extends HttpServlet {
         } else {
             String error = request.getParameter("error");
             if (error != null) {
-                if (error.equals("invalidpassword")) {
-                    request.setAttribute("errorMessage", "Wrong password, please retry!");
-                } else if (error.equals("invalidusername")) {
-                    request.setAttribute("errorMessage", "No users with this login where found.");
-                } else if (error.equals("authneeded")) {
-                    request.setAttribute("errorMessage", "Authentication needed to access the \"account\" section!");
-                }
+                ErrorManager errorManager = ErrorManager.getInstance();
+                String errorMessage = errorManager.findError("login", error);
+                request.setAttribute("errorMessage", errorMessage);
             }
 
             request.setAttribute("pageTitle", "Login");
@@ -119,11 +168,9 @@ public class AccountServlet extends HttpServlet {
         String error = request.getParameter("error");
 
         if (error != null) {
-            if (error.equals("updatefailure")) {
-                request.setAttribute("errorMessage", "We were not able to update your data, sorry.");
-            } else if (error.equals("passwordupdatefailure")) {
-                request.setAttribute("errorMessage", "We were not able to update your password, sorry.");
-            }
+            ErrorManager errorManager = ErrorManager.getInstance();
+            String errorMessage = errorManager.findError("account", error);
+            request.setAttribute("errorMessage", errorMessage);
         } else if (message != null) {
             if (message.equals("updatesuccess")) {
                 request.setAttribute("message", "Your data was successfully updated.");

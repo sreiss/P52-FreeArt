@@ -76,4 +76,21 @@ public class AuthorFacadeBean extends DataFacade {
             return null;
         }
     }
+
+    public int count(String login) {
+        CriteriaBuilder criteriaBuilder = getEntityManager()
+                .getCriteriaBuilder();
+        CriteriaQuery criteriaQuery = criteriaBuilder.createQuery();
+
+        Root<Author> root = criteriaQuery.from(Author.class);
+        ParameterExpression<String> loginParameter = criteriaBuilder.parameter(String.class);
+
+        criteriaQuery.select(criteriaBuilder.count(root))
+                .where(criteriaBuilder.equal(root.get("login"), loginParameter));
+
+        Query query = getEntityManager().createQuery(criteriaQuery);
+        query.setParameter(loginParameter, login);
+
+        return ((Long) query.getSingleResult()).intValue();
+    }
 }
