@@ -11,8 +11,20 @@
   <h1 class="text-center">My Account</h1>
   <%@ include file="/WEB-INF/app/includes/errorAlert.jsp" %>
   <%@ include file="/WEB-INF/app/includes/messageAlert.jsp" %>
+
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          My Work
+        </div>
+        <div class="panel-body">
+          <a href="${rootUrl}/Author?author&login=${currentAuthor.login}" class="btn btn-block btn-primary">My work</a>
+          <a href="${rootUrl}/Account?action=upload" class="btn btn-info btn-block">Upload <span class="glyphicon glyphicon-upload"></span></a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
       <div class="panel panel-default">
       <div class="panel-heading">
         My informations
@@ -40,7 +52,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-6">
+  <div class="col-md-4">
     <div class="panel panel-default">
       <div class="panel-heading">
         My password

@@ -1,22 +1,37 @@
 package app.controller;
 
 import app.ejb.AuthorFacadeBean;
+import app.ejb.CategoryFacadeBean;
 import app.error.ErrorManager;
 import app.model.Author;
+import app.model.Category;
+import app.model.Work;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.FilenameUtils;
 import org.omg.CORBA.Request;
 
 import javax.ejb.EJB;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -26,6 +41,28 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class AccountServlet extends HttpServlet {
     @EJB
     private AuthorFacadeBean authorFacade;
+
+    @EJB
+    private CategoryFacadeBean categoryFacade;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        if (action == null) {
+            action = "";
+        }
+
+        if (action.equals("login")) {
+            getLogin(request, response);
+        } else if (action.equals("logout")) {
+            logout(request, response);
+        } else if (action.equals("signup")) {
+            getSignup(request, response);
+        } else if (action.equals("upload")) {
+            getUpload(request, response);
+        } else {
+            getAccount(request, response);
+        }
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -39,6 +76,99 @@ public class AccountServlet extends HttpServlet {
             updateInfos(request, response);
         } else if (action.equals("signup")) {
             postSignup(request, response);
+        } else if (action.equals("upload")) {
+            postUpload(request, response);
+        }
+    }
+
+    private void postUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String location = request.getParameter("location");
+        int categoryId;
+        try {
+            categoryId = Integer.parseInt(request.getParameter("categoryId"));
+        } catch (NumberFormatException e) {
+            categoryId = -1;
+            response.sendRedirect(
+                    MessageFormat.format("{0}/Account?action=upload&error=invalidcategory", request.getContextPath())
+            );
+        }
+
+        if (categoryId > 0) {
+            if (title.equals("")) {
+                response.sendRedirect(
+                        MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
+                );
+            } else {
+                Category category = (Category) categoryFacade.find(categoryId);
+                Author author = (Author) request.getSession().getAttribute("currentAuthor");
+                Date date = new Date();
+                Timestamp currentTimestamp = new Timestamp(date.getTime());
+                if (category != null) {
+//                    try {
+//                        List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
+//                        boolean hasFile = false;
+//                        String finalFileName = "";
+//                        String finalThumbnailName = "";
+//                        for (FileItem item : items) {
+//                            ServletContext servletContext = getServletConfig().getServletContext();
+//                            String path = servletContext.getRealPath("/");
+//
+//                            String fieldName = item.getFieldName();
+//                            String fileName = FilenameUtils.getName(item.getName());
+//                            InputStream file = item.getInputStream();
+//
+//                            if (fieldName.equals("thumbnail")) {
+//                                FileOutputStream fileOutputStream = new FileOutputStream(
+//                                        MessageFormat.format("{0}/thumbnail/{1}/{2}-{3}-{4}", path, category.getName(), author.getName(), currentTimestamp, fileName)
+//                                );
+//                                int read = 0;
+//                                byte[] buffer = new byte[2048];
+//                                while ((read = file.read()) != -1) {
+//                                    fileOutputStream.write(buffer, 0, read);
+//                                }
+//                                fileOutputStream.close();
+//                            } else if (fieldName.equals("file")) {
+//                                hasFile = true;
+//                                FileOutputStream fileOutputStream = new FileOutputStream(
+//                                        MessageFormat.format("{0}/uploads/{1}/{2}-{3}-{4}", path, category.getName(), author.getName(), currentTimestamp, fileName)
+//                                );
+//                                int read = 0;
+//                                byte[] buffer = new byte[2048];
+//                                while ((read = file.read()) != -1) {
+//                                    fileOutputStream.write(buffer, 0, read);
+//                                }
+//                                fileOutputStream.close();
+//                            }
+//                        }
+//
+//                        if (hasFile) {
+//                            Work work = new Work();
+//                            work.setTitle(title);
+//                            work.setDescription(description);
+//                            work.setLocation(location);
+//                            work.setCategory(category);
+//                            work.setAuthor(author);
+//                            work.setCreationDate(currentTimestamp);
+//                            work.setFile(finalFileName);
+//                            work.setFile(finalThumbnailName);
+//                        } else {
+//                            response.sendRedirect(
+//                                    MessageFormat.format("{0}/Account?action=upload&error=nofile", request.getContextPath())
+//                            );
+//                        }
+//                    } catch (FileUploadException e) {
+//                        response.sendRedirect(
+//                                MessageFormat.format("{0}/Account?action=upload&error=couldnotupload", request.getContextPath())
+//                        );
+//                    }
+                } else {
+                    response.sendRedirect(
+                            MessageFormat.format("{0}/Account?action=upload&error=nocategory", request.getContextPath())
+                    );
+                }
+            }
         }
     }
 
@@ -79,21 +209,13 @@ public class AccountServlet extends HttpServlet {
         }
     }
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
+    private void getUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<Category> categories = categoryFacade.findAll();
 
-        if (action.equals("login")) {
-            getLogin(request, response);
-        } else if (action.equals("logout")) {
-            logout(request, response);
-        } else if (action.equals("signup")) {
-            getSignup(request, response);
-        } else {
-            getAccount(request, response);
-        }
+        request.setAttribute("categories", categories);
+
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getUpload.jsp");
+        requestDispatcher.forward(request, response);
     }
 
     private void postSignup(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {

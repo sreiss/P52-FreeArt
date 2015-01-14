@@ -13,9 +13,19 @@
   <c:if test="${empty author}">
     <p class="text-center">No author with this login where found</p>
   </c:if>
-  <c:if test="${not empty author}">
-    <p class="text-center">This is <strong>${author.firstName} ${author.name}</strong>'s work!</p>
-    <%@ include file="/WEB-INF/app/servlet/includes/workLister.jsp" %>
+  <c:if test="${empty works}">
+    <p class="text-center">This author didn't post any work yet</p>
+  </c:if>
+  <c:if test="${not empty works}">
+    <c:if test="${not empty author}">
+      <c:if test="${not empty author.firstName and not empty author.name}">
+        <p class="text-center">This is <strong>${author.firstName} ${author.name}</strong>'s work!</p>
+      </c:if>
+      <c:if test="${not empty author.login and empty author.firstName or empty author.name}">
+        <p class="text-center">This is <strong>${author.login}</strong>'s work!</p>
+      </c:if>
+      <%@ include file="/WEB-INF/app/servlet/includes/workLister.jsp" %>
+    </c:if>
   </c:if>
 </div>
 
