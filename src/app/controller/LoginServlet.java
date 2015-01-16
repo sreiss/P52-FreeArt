@@ -38,10 +38,8 @@ public class LoginServlet extends HttpServlet {
     }
 
     private void postLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("pageTitle", "Login");
         String login = request.getParameter("login");
         Author author = authorFacade.findByLogin(login);
-        response.getWriter().append(author.getFirstName());
 
         if (author != null) {
             String password = hashPassword(request.getParameter("password"));
@@ -63,12 +61,12 @@ public class LoginServlet extends HttpServlet {
                 );
             } else {
                 response.sendRedirect(
-                        MessageFormat.format("{0}/Account?action=login&error=invalidpassword", request.getContextPath())
+                        MessageFormat.format("{0}/Login?action=login&error=invalidpassword", request.getContextPath())
                 );
             }
         } else {
             response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=login&error=invaliduser", request.getContextPath())
+                    MessageFormat.format("{0}/Login?action=login&error=invaliduser", request.getContextPath())
             );
         }
     }
@@ -83,11 +81,11 @@ public class LoginServlet extends HttpServlet {
 
         if (!password.equals(passwordRepeat)) {
             response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=signup&error=invalidpassword", request.getContextPath())
+                    MessageFormat.format("{0}/Login?action=signup&error=invalidpassword", request.getContextPath())
             );
         } else if (authorFacade.count(login) > 0) {
             response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=signup&error=existingusername", request.getContextPath())
+                    MessageFormat.format("{0}/Login?action=signup&error=existingusername", request.getContextPath())
             );
         } else {
             Author author = new Author();
@@ -101,14 +99,14 @@ public class LoginServlet extends HttpServlet {
                 authorFacade.create(author);
             } catch (Exception e) {
                 response.sendRedirect(
-                        MessageFormat.format("{0}/Account?action=signup&error=errorwhilesaving", request.getContextPath())
+                        MessageFormat.format("{0}/Login?action=signup&error=errorwhilesaving", request.getContextPath())
                 );
             }
 
             request.getSession().setAttribute("currentAuthor", author);
 
             response.sendRedirect(
-                    MessageFormat.format("{0}/Account?message=accountcreated", request.getContextPath())
+                    MessageFormat.format("{0}/Login?message=accountcreated", request.getContextPath())
             );
         }
     }
@@ -136,39 +134,27 @@ public class LoginServlet extends HttpServlet {
     }
 
     private void getSignup(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {
-        if (request.getSession().getAttribute("currentAuthor") != null) {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account", request.getContextPath())
-            );
-        } else {
-            String error = request.getParameter("error");
-            if (error != null) {
-                ErrorManager errorManager = ErrorManager.getInstance();
-                String errorMessage = errorManager.findError("signup", error);
-                request.setAttribute("errorMessage", errorMessage);
-            }
-
-            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getSignup.jsp");
-            requestDispatcher.forward(request, response);
+        String error = request.getParameter("error");
+        if (error != null) {
+            ErrorManager errorManager = ErrorManager.getInstance();
+            String errorMessage = errorManager.findError("signup", error);
+            request.setAttribute("errorMessage", errorMessage);
         }
+
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/login/getSignup.jsp");
+        requestDispatcher.forward(request, response);
     }
 
     private void getLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (request.getSession().getAttribute("currentAuthor") != null) {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account", request.getContextPath())
-            );
-        } else {
-            String error = request.getParameter("error");
-            if (error != null) {
-                ErrorManager errorManager = ErrorManager.getInstance();
-                String errorMessage = errorManager.findError("login", error);
-                request.setAttribute("errorMessage", errorMessage);
-            }
-
-            request.setAttribute("pageTitle", "Login");
-            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getLogin.jsp");
-            requestDispatcher.forward(request, response);
+        String error = request.getParameter("error");
+        if (error != null) {
+            ErrorManager errorManager = ErrorManager.getInstance();
+            String errorMessage = errorManager.findError("login", error);
+            request.setAttribute("errorMessage", errorMessage);
         }
+
+        request.setAttribute("pageTitle", "Login");
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/login/getLogin.jsp");
+        requestDispatcher.forward(request, response);
     }
 }

@@ -20,11 +20,11 @@
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <c:if test="${not empty sessionScope.currentAuthor}">
-          <li><a href="${rootUrl}/Account?action=logout">Logout</a></li>
+          <li><a href="${rootUrl}/Login?action=logout">Logout</a></li>
           <li><a href="${rootUrl}/Account">My Account</a></li>
         </c:if>
         <c:if test="${empty sessionScope.currentAuthor}">
-          <li><a href="${rootUrl}/Account?action=login">Login</a></li>
+          <li><a href="${rootUrl}/Login?action=login">Login</a></li>
         </c:if>
         <li><a href="${rootUrl}/Cart"><span class="glyphicon glyphicon-shopping-cart"></span> My Cart</a></li>
       </ul>

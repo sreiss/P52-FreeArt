@@ -9,7 +9,7 @@
       <p class="text-center">Login to start uploading your own creations!</p>
       <div class="panel panel-default">
         <div class="panel-body">
-          <form method="post" action="${rootUrl}/Account">
+          <form method="post" action="${rootUrl}/Login">
             <div class="form-group text-center">
               <label>Login</label>
               <input type="text" class="form-control text-center" name="login" />

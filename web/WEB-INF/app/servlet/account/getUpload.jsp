@@ -1,6 +1,7 @@
 <%@ include file="/WEB-INF/app/includes/header.jsp" %>
 
 <c:set var="errorMessage" value="${requestScope.errorMessage}"></c:set>
+<c:set var="successMessage" value="${requestScope.successMessage}"></c:set>
 <c:set var="categories" value="${requestScope.categories}"></c:set>
 
 <div class="container">
@@ -10,9 +11,12 @@
   </ol>
   <h1 class="text-center">Upload a file!</h1>
   <div class="col-md-6 col-md-offset-3">
+    <%@ include file="/WEB-INF/app/includes/errorAlert.jsp" %>
+    <%@ include file="/WEB-INF/app/includes/messageAlert.jsp" %>
     <div class="panel panel-default">
       <div class="panel-body">
         <form method="post" action="${rootUrl}/Account" enctype="multipart/form-data">
+          <input type="hidden" name="action" value="upload" />
           <div class="form-group text-center">
             <label>Title</label>
             <input type="text" class="form-control text-center" name="title" />
@@ -41,8 +45,6 @@
             <label>File</label>
             <input type="file" class="form-control text-center" name="file" />
           </div>
-          <input type="hidden" name="action" value="upload" />
-          <!--<input type="hidden" name="secret" value="1586231455" />-->
           <input type="submit" class="btn-block btn btn-primary" value="Upload!" />
         </form>
       </div>

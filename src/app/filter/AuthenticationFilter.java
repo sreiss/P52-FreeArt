@@ -25,7 +25,7 @@ public class AuthenticationFilter implements Filter {
                 e.printStackTrace();
             }
         } else {
-            ((HttpServletResponse) response).sendRedirect(MessageFormat.format("{0}/Account?action=login", ((HttpServletRequest) request).getContextPath()));
+            ((HttpServletResponse) response).sendRedirect(MessageFormat.format("{0}/Login?action=login", ((HttpServletRequest) request).getContextPath()));
         }
     }
 

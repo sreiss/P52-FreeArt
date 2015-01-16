@@ -17,7 +17,7 @@
           My informations
         </div>
         <div class="panel-body text-center">
-          <form method="post" action="${rootUrl}/Account">
+          <form method="post" action="${rootUrl}/Login">
             <div class="form-group">
               <label>Username</label>
               <input type="text" class="form-control text-center" name="login" />

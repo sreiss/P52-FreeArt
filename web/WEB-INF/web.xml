@@ -27,6 +27,6 @@
     </filter>
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
-        <url-pattern>/Account*</url-pattern>
+        <url-pattern>/Account</url-pattern>
     </filter-mapping>
 </web-app>

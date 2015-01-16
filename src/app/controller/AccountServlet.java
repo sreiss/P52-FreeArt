@@ -2,6 +2,7 @@ package app.controller;
 
 import app.ejb.AuthorFacadeBean;
 import app.ejb.CategoryFacadeBean;
+import app.ejb.WorkFacadeBean;
 import app.error.ErrorManager;
 import app.model.Author;
 import app.model.Category;
@@ -16,6 +17,7 @@ import org.omg.CORBA.Request;
 import javax.ejb.EJB;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.*;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +30,7 @@ import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 
@@ -37,12 +40,21 @@ import static app.util.PasswordHasher.hashPassword;
  * Created by Simon on 11/01/2015.
  */
 @WebServlet("/Account")
+@MultipartConfig(
+        location="/tmp",
+        fileSizeThreshold=1024*1024,
+        maxFileSize=1024*1024*5,
+        maxRequestSize=1024*1024*5*5
+)
 public class AccountServlet extends HttpServlet {
     @EJB
     private AuthorFacadeBean authorFacade;
 
     @EJB
     private CategoryFacadeBean categoryFacade;
+
+    @EJB
+    private WorkFacadeBean workFacade;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -72,69 +84,93 @@ public class AccountServlet extends HttpServlet {
 
     private void postUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String title = request.getParameter("title");
-        String description = request.getParameter("description");
-        String location = request.getParameter("location");
-        int categoryId;
-        try {
-            categoryId = Integer.parseInt(request.getParameter("categoryId"));
-        } catch (NumberFormatException e) {
-            categoryId = -1;
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=upload&error=invalidcategory", request.getContextPath())
-            );
-        }
 
-        if (categoryId > 0) {
-            if (title.equals("")) {
+        if (title != null) {
+            String description = request.getParameter("description");
+            String location = request.getParameter("location");
+            int categoryId;
+            try {
+                categoryId = Integer.parseInt(request.getParameter("categoryId"));
+            } catch (NumberFormatException e) {
+                categoryId = -1;
                 response.sendRedirect(
-                        MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
+                        MessageFormat.format("{0}/Account?action=upload&error=invalidcategory", request.getContextPath())
                 );
-            } else {
-                Category category = (Category) categoryFacade.find(categoryId);
-                Author author = (Author) request.getSession().getAttribute("currentAuthor");
-                Date date = new Date();
-                Timestamp currentTimestamp = new Timestamp(date.getTime());
-                if (category != null) {
-                    response.setContentType("text/html;charset=UTF-8");
+            }
 
-                    // Create path components to save the file
-                    Part filePart = request.getPart("file");
-                    String fileName = getFileName(filePart);
-                    String path = MessageFormat.format("{0}/uploads/{1}/{2}-{3}-{4}", "/", category.getName(), author.getName(), currentTimestamp, fileName);
+            if (categoryId > 0) {
+                if (title.equals("")) {
+                    response.sendRedirect(
+                            MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
+                    );
+                } else {
+                    Category category = (Category) categoryFacade.find(categoryId);
+                    Author author = (Author) request.getSession().getAttribute("currentAuthor");
+                    Date date = new Date();
+                    Timestamp currentTimestamp = new Timestamp(date.getTime());
+                    if (category != null) {
+                        response.setContentType("text/html;charset=UTF-8");
 
-                    OutputStream out = null;
-                    InputStream filecontent = null;
-                    final PrintWriter writer = response.getWriter();
-
-                    try {
-                        out = new FileOutputStream(new File(path));
-                        filecontent = filePart.getInputStream();
-
-                        int read = 0;
-                        final byte[] bytes = new byte[1024];
-
-                        while ((read = filecontent.read(bytes)) != -1) {
-                            out.write(bytes, 0, read);
+                        // Create path components to save the file
+                        Part filePart = request.getPart("file");
+                        String fileName = getFileName(filePart);
+                        String uploadPath = getServletContext().getRealPath("uploads");
+                        String finalFileName = MessageFormat.format("{0}-{1}-{2}", author.getLogin(), currentTimestamp.toString(), fileName);
+                        char[] forbiddenChars = {'/', '_', ' ', ':', '?'};
+                        for (char forbiddenChar : forbiddenChars) {
+                            finalFileName = finalFileName.replace(forbiddenChar, '-');
                         }
-                        writer.println("New file " + fileName + " created at " + path);
-                    } catch (FileNotFoundException fne) {
-                        writer.println("You either did not specify a file to upload or are "
-                                + "trying to upload a file to a protected or nonexistent "
-                                + "location.");
-                        writer.println("<br/> ERROR: " + fne.getMessage());
-                    } finally {
-                        if (out != null) {
-                            out.close();
-                        }
-                        if (filecontent != null) {
-                            filecontent.close();
-                        }
-                        if (writer != null) {
-                            writer.close();
+                        String path = MessageFormat.format("{0}/{1}/{2}", uploadPath, category.getName(), finalFileName);
+
+                        OutputStream out = null;
+                        InputStream filecontent = null;
+                        final PrintWriter writer = response.getWriter();
+
+                        try {
+                            out = new FileOutputStream(new File(path));
+                            filecontent = filePart.getInputStream();
+
+                            int read = 0;
+                            final byte[] bytes = new byte[1024];
+
+                            while ((read = filecontent.read(bytes)) != -1) {
+                                out.write(bytes, 0, read);
+                            }
+
+                            Work work = new Work();
+                            work.setAuthor((Author) request.getSession().getAttribute("currentAuthor"));
+                            work.setFile(finalFileName);
+                            work.setCreationDate(currentTimestamp);
+                            work.setLocation(location);
+                            work.setDescription(description);
+                            work.setCategory(category);
+                            work.setTitle(title);
+                            workFacade.create(work);
+                            response.sendRedirect(
+                                    MessageFormat.format("{0}/Account?action=upload&message=uploadsuccess", request.getContextPath())
+                            );
+                        } catch (FileNotFoundException fne) {
+                            response.sendRedirect(
+                                    MessageFormat.format("{0}/Account?action=upload&error=filecreation", request.getContextPath())
+                            );
+                        } finally {
+                            if (out != null) {
+                                out.close();
+                            }
+                            if (filecontent != null) {
+                                filecontent.close();
+                            }
+                            if (writer != null) {
+                                writer.close();
+                            }
                         }
                     }
                 }
             }
+        } else {
+            response.sendRedirect(
+                    MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
+            );
         }
     }
 
@@ -149,100 +185,19 @@ public class AccountServlet extends HttpServlet {
         return null;
     }
 
-    /*private void postUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String title = request.getParameter("title");
-        String description = request.getParameter("description");
-        String location = request.getParameter("location");
-        int categoryId;
-        try {
-            categoryId = Integer.parseInt(request.getParameter("categoryId"));
-        } catch (NumberFormatException e) {
-            categoryId = -1;
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=upload&error=invalidcategory", request.getContextPath())
-            );
-        }
-
-        if (categoryId > 0) {
-            if (title.equals("")) {
-                response.sendRedirect(
-                        MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
-                );
-            } else {
-                Category category = (Category) categoryFacade.find(categoryId);
-                Author author = (Author) request.getSession().getAttribute("currentAuthor");
-                Date date = new Date();
-                Timestamp currentTimestamp = new Timestamp(date.getTime());
-                if (category != null) {
-//                    try {
-//                        List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
-//                        boolean hasFile = false;
-//                        String finalFileName = "";
-//                        String finalThumbnailName = "";
-//                        for (FileItem item : items) {
-//                            ServletContext servletContext = getServletConfig().getServletContext();
-//                            String path = servletContext.getRealPath("/");
-//
-//                            String fieldName = item.getFieldName();
-//                            String fileName = FilenameUtils.getName(item.getName());
-//                            InputStream file = item.getInputStream();
-//
-//                            if (fieldName.equals("thumbnail")) {
-//                                FileOutputStream fileOutputStream = new FileOutputStream(
-//                                        MessageFormat.format("{0}/thumbnail/{1}/{2}-{3}-{4}", path, category.getName(), author.getName(), currentTimestamp, fileName)
-//                                );
-//                                int read = 0;
-//                                byte[] buffer = new byte[2048];
-//                                while ((read = file.read()) != -1) {
-//                                    fileOutputStream.write(buffer, 0, read);
-//                                }
-//                                fileOutputStream.close();
-//                            } else if (fieldName.equals("file")) {
-//                                hasFile = true;
-//                                FileOutputStream fileOutputStream = new FileOutputStream(
-//                                        MessageFormat.format("{0}/uploads/{1}/{2}-{3}-{4}", path, category.getName(), author.getName(), currentTimestamp, fileName)
-//                                );
-//                                int read = 0;
-//                                byte[] buffer = new byte[2048];
-//                                while ((read = file.read()) != -1) {
-//                                    fileOutputStream.write(buffer, 0, read);
-//                                }
-//                                fileOutputStream.close();
-//                            }
-//                        }
-//
-//                        if (hasFile) {
-//                            Work work = new Work();
-//                            work.setTitle(title);
-//                            work.setDescription(description);
-//                            work.setLocation(location);
-//                            work.setCategory(category);
-//                            work.setAuthor(author);
-//                            work.setCreationDate(currentTimestamp);
-//                            work.setFile(finalFileName);
-//                            work.setFile(finalThumbnailName);
-//                        } else {
-//                            response.sendRedirect(
-//                                    MessageFormat.format("{0}/Account?action=upload&error=nofile", request.getContextPath())
-//                            );
-//                        }
-//                    } catch (FileUploadException e) {
-//                        response.sendRedirect(
-//                                MessageFormat.format("{0}/Account?action=upload&error=couldnotupload", request.getContextPath())
-//                        );
-//                    }
-                } else {
-                    response.sendRedirect(
-                            MessageFormat.format("{0}/Account?action=upload&error=nocategory", request.getContextPath())
-                    );
-                }
+    private void getUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String error = request.getParameter("error");
+        String message = request.getParameter("message");
+        if (error != null) {
+            ErrorManager errorManager = ErrorManager.getInstance();
+            String errorMessage = errorManager.findError("account", error);
+            request.setAttribute("errorMessage", errorMessage);
+        } else if (message != null) {
+            if (message.equals("uploadsuccess")) {
+                request.setAttribute("message", "Your upload succeded!");
             }
         }
-    }*/
 
-
-
-    private void getUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         List<Category> categories = categoryFacade.findAll();
 
         request.setAttribute("categories", categories);
@@ -269,15 +224,9 @@ public class AccountServlet extends HttpServlet {
             }
         }
 
-        if (request.getSession().getAttribute("currentAuthor") != null) {
-            request.setAttribute("pageTitle", "Account");
-            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getAccount.jsp");
-            requestDispatcher.forward(request, response);
-        } else {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=login&error=authneeded", request.getContextPath())
-            );
-        }
+        request.setAttribute("pageTitle", "Account");
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getAccount.jsp");
+        requestDispatcher.forward(request, response);
     }
 
     private void updateInfos(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {
