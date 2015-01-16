@@ -15,17 +15,13 @@ import org.omg.CORBA.Request;
 
 import javax.ejb.EJB;
 import javax.persistence.EntityNotFoundException;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.servlet.http.Part;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
@@ -33,6 +29,9 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+
+import static app.util.PasswordHasher.hashPassword;
 
 /**
  * Created by Simon on 11/01/2015.
@@ -51,13 +50,7 @@ public class AccountServlet extends HttpServlet {
             action = "";
         }
 
-        if (action.equals("login")) {
-            getLogin(request, response);
-        } else if (action.equals("logout")) {
-            logout(request, response);
-        } else if (action.equals("signup")) {
-            getSignup(request, response);
-        } else if (action.equals("upload")) {
+        if (action.equals("upload")) {
             getUpload(request, response);
         } else {
             getAccount(request, response);
@@ -70,18 +63,93 @@ public class AccountServlet extends HttpServlet {
             action = "";
         }
 
-        if (action.equals("login")) {
-            postLogin(request, response);
-        } else if (action.equals("update")) {
+        if (action.equals("update")) {
             updateInfos(request, response);
-        } else if (action.equals("signup")) {
-            postSignup(request, response);
         } else if (action.equals("upload")) {
             postUpload(request, response);
         }
     }
 
     private void postUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String location = request.getParameter("location");
+        int categoryId;
+        try {
+            categoryId = Integer.parseInt(request.getParameter("categoryId"));
+        } catch (NumberFormatException e) {
+            categoryId = -1;
+            response.sendRedirect(
+                    MessageFormat.format("{0}/Account?action=upload&error=invalidcategory", request.getContextPath())
+            );
+        }
+
+        if (categoryId > 0) {
+            if (title.equals("")) {
+                response.sendRedirect(
+                        MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
+                );
+            } else {
+                Category category = (Category) categoryFacade.find(categoryId);
+                Author author = (Author) request.getSession().getAttribute("currentAuthor");
+                Date date = new Date();
+                Timestamp currentTimestamp = new Timestamp(date.getTime());
+                if (category != null) {
+                    response.setContentType("text/html;charset=UTF-8");
+
+                    // Create path components to save the file
+                    Part filePart = request.getPart("file");
+                    String fileName = getFileName(filePart);
+                    String path = MessageFormat.format("{0}/uploads/{1}/{2}-{3}-{4}", "/", category.getName(), author.getName(), currentTimestamp, fileName);
+
+                    OutputStream out = null;
+                    InputStream filecontent = null;
+                    final PrintWriter writer = response.getWriter();
+
+                    try {
+                        out = new FileOutputStream(new File(path));
+                        filecontent = filePart.getInputStream();
+
+                        int read = 0;
+                        final byte[] bytes = new byte[1024];
+
+                        while ((read = filecontent.read(bytes)) != -1) {
+                            out.write(bytes, 0, read);
+                        }
+                        writer.println("New file " + fileName + " created at " + path);
+                    } catch (FileNotFoundException fne) {
+                        writer.println("You either did not specify a file to upload or are "
+                                + "trying to upload a file to a protected or nonexistent "
+                                + "location.");
+                        writer.println("<br/> ERROR: " + fne.getMessage());
+                    } finally {
+                        if (out != null) {
+                            out.close();
+                        }
+                        if (filecontent != null) {
+                            filecontent.close();
+                        }
+                        if (writer != null) {
+                            writer.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private String getFileName(final Part part) {
+        final String partHeader = part.getHeader("content-disposition");
+        for (String content : part.getHeader("content-disposition").split(";")) {
+            if (content.trim().startsWith("filename")) {
+                return content.substring(
+                        content.indexOf('=') + 1).trim().replace("\"", "");
+            }
+        }
+        return null;
+    }
+
+    /*private void postUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String title = request.getParameter("title");
         String description = request.getParameter("description");
         String location = request.getParameter("location");
@@ -170,44 +238,9 @@ public class AccountServlet extends HttpServlet {
                 }
             }
         }
-    }
+    }*/
 
-    // POST /Account {action=login}
-    private void postLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("pageTitle", "Login");
-        String login = request.getParameter("login");
-        Author author = authorFacade.findByLogin(login);
-        response.getWriter().append(author.getFirstName());
 
-        if (author != null) {
-            String password = hashPassword(request.getParameter("password"));
-            String authorPassword = author.getPassword();
-
-            if (password == null) {
-                password = "";
-            }
-            if (authorPassword == null) {
-                authorPassword = "";
-            }
-
-            if (password.equals(authorPassword)) {
-                request.getSession()
-                        .setAttribute("currentAuthor", author);
-
-                response.sendRedirect(
-                        MessageFormat.format("{0}/Account", request.getContextPath())
-                );
-            } else {
-                response.sendRedirect(
-                        MessageFormat.format("{0}/Account?action=login&error=invalidpassword", request.getContextPath())
-                );
-            }
-        } else {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=login&error=invaliduser", request.getContextPath())
-            );
-        }
-    }
 
     private void getUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         List<Category> categories = categoryFacade.findAll();
@@ -216,83 +249,6 @@ public class AccountServlet extends HttpServlet {
 
         RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getUpload.jsp");
         requestDispatcher.forward(request, response);
-    }
-
-    private void postSignup(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {
-        String login = request.getParameter("login");
-        String name = request.getParameter("name");
-        String firstName = request.getParameter("firstName");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String passwordRepeat = request.getParameter("passwordRepeat");
-
-        if (!password.equals(passwordRepeat)) {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=signup&error=invalidpassword", request.getContextPath())
-            );
-        } else if (authorFacade.count(login) > 0) {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account?action=signup&error=existingusername", request.getContextPath())
-            );
-        } else {
-            Author author = new Author();
-            author.setLogin(login);
-            author.setName(name);
-            author.setFirstName(firstName);
-            author.setEmail(email);
-            author.setPassword(hashPassword(password));
-
-            try {
-                authorFacade.create(author);
-            } catch (Exception e) {
-                response.sendRedirect(
-                        MessageFormat.format("{0}/Account?action=signup&error=errorwhilesaving", request.getContextPath())
-                );
-            }
-
-            request.getSession().setAttribute("currentAuthor", author);
-
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account?message=accountcreated", request.getContextPath())
-            );
-        }
-    }
-
-    private void getSignup(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {
-        if (request.getSession().getAttribute("currentAuthor") != null) {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account", request.getContextPath())
-            );
-        } else {
-            String error = request.getParameter("error");
-            if (error != null) {
-                ErrorManager errorManager = ErrorManager.getInstance();
-                String errorMessage = errorManager.findError("signup", error);
-                request.setAttribute("errorMessage", errorMessage);
-            }
-
-            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getSignup.jsp");
-            requestDispatcher.forward(request, response);
-        }
-    }
-
-    private void getLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (request.getSession().getAttribute("currentAuthor") != null) {
-            response.sendRedirect(
-                    MessageFormat.format("{0}/Account", request.getContextPath())
-            );
-        } else {
-            String error = request.getParameter("error");
-            if (error != null) {
-                ErrorManager errorManager = ErrorManager.getInstance();
-                String errorMessage = errorManager.findError("login", error);
-                request.setAttribute("errorMessage", errorMessage);
-            }
-
-            request.setAttribute("pageTitle", "Login");
-            RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/app/servlet/account/getLogin.jsp");
-            requestDispatcher.forward(request, response);
-        }
     }
 
     private void getAccount(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -322,13 +278,6 @@ public class AccountServlet extends HttpServlet {
                     MessageFormat.format("{0}/Account?action=login&error=authneeded", request.getContextPath())
             );
         }
-    }
-
-    private void logout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getSession().setAttribute("currentAuthor", null);
-        response.sendRedirect(
-                MessageFormat.format("{0}/Home", request.getContextPath())
-        );
     }
 
     private void updateInfos(HttpServletRequest request, HttpServletResponse response) throws  ServletException, IOException {
@@ -383,26 +332,5 @@ public class AccountServlet extends HttpServlet {
                 );
             }
         }
-    }
-
-    private String hashPassword(String password) {
-        String hashedPassword = null;
-        try {
-            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-            messageDigest.update(password.getBytes());
-            byte[] hashBytes = messageDigest.digest();
-            messageDigest.update(hashBytes);
-            hashBytes = messageDigest.digest();
-
-            StringBuilder stringBuilder = new StringBuilder();
-            for(int i=0; i< hashBytes.length ;i++)
-            {
-                stringBuilder.append(Integer.toString((hashBytes[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            hashedPassword = stringBuilder.toString();
-        } catch (NoSuchAlgorithmException e) {
-            hashedPassword = "";
-        }
-        return hashedPassword;
     }
 }

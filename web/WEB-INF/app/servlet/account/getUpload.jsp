@@ -1,6 +1,7 @@
 <%@ include file="/WEB-INF/app/includes/header.jsp" %>
 
 <c:set var="errorMessage" value="${requestScope.errorMessage}"></c:set>
+<c:set var="categories" value="${requestScope.categories}"></c:set>
 
 <div class="container">
   <ol class="breadcrumb">
@@ -11,7 +12,7 @@
   <div class="col-md-6 col-md-offset-3">
     <div class="panel panel-default">
       <div class="panel-body">
-        <form method="post" action="${rootUrl}/Account?action=upload" enctype="multipart/form-data">
+        <form method="post" action="${rootUrl}/Account" enctype="multipart/form-data">
           <div class="form-group text-center">
             <label>Title</label>
             <input type="text" class="form-control text-center" name="title" />
@@ -25,6 +26,14 @@
             <input type="text" class="form-control text-center" name="location" />
           </div>
           <div class="form-group text-center">
+            <label>Category</label>
+            <select name="categoryId" class="form-control">
+              <c:forEach items="${categories}" var="category">
+                <option value="${category.id}">${category.name}</option>
+              </c:forEach>
+            </select>
+          </div>
+          <div class="form-group text-center">
             <label>Thumbnail <small>(optional)</small></label>
             <input type="file" class="form-control text-center" name="thumbnail" />
           </div>
@@ -32,7 +41,7 @@
             <label>File</label>
             <input type="file" class="form-control text-center" name="file" />
           </div>
-          <input type="hidden" name="action" value="login" />
+          <input type="hidden" name="action" value="upload" />
           <!--<input type="hidden" name="secret" value="1586231455" />-->
           <input type="submit" class="btn-block btn btn-primary" value="Upload!" />
         </form>
