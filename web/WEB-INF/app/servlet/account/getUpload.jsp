@@ -33,9 +33,30 @@
             <label>Category</label>
             <select name="categoryId" class="form-control">
               <c:forEach items="${categories}" var="category">
-                <option value="${category.id}">${category.name}</option>
+                <option value="${category.id}">${category.displayName}</option>
               </c:forEach>
             </select>
+          </div>
+          <p class="text-center">
+            You can also create a new category by checking "create a new category" and giving it's name
+          </p>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group text-center">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" name="createCategory" />
+                    <strong>Create a new category</strong>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group text-center">
+                <label>Category name</label>
+                <input type="text" name="categoryName" class="form-control" />
+              </div>
+            </div>
           </div>
           <div class="form-group text-center">
             <label>Thumbnail <small>(optional)</small></label>

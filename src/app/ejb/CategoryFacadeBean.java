@@ -4,6 +4,7 @@ import app.model.Category;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -47,5 +48,26 @@ public class CategoryFacadeBean extends DataFacade {
             query.setParameter(searchParameter, search);
 
         return query.getResultList();
+    }
+
+    public Category findByName(String name) {
+        CriteriaBuilder criteriaBuilder = getEntityManager()
+                .getCriteriaBuilder();
+        CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(Category.class);
+
+        Root<Category> root = criteriaQuery.from(Category.class);
+        ParameterExpression<String> nameParameter = criteriaBuilder.parameter(String.class);
+
+        criteriaQuery.select(root)
+                .where(criteriaBuilder.equal(root.get("name"), nameParameter));
+
+        Query query = getEntityManager().createQuery(criteriaQuery);
+        query.setParameter(nameParameter, name);
+
+        try {
+            return (Category) query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 }

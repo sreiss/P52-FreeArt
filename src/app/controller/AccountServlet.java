@@ -84,27 +84,59 @@ public class AccountServlet extends HttpServlet {
 
     private void postUpload(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String title = request.getParameter("title");
+        char[] forbiddenChars = {'/', '_', ' ', ':', '?', ',', ';'};
 
         if (title != null) {
             String description = request.getParameter("description");
             String location = request.getParameter("location");
+            String categoryIdString = request.getParameter("categoryId");
             int categoryId;
-            try {
-                categoryId = Integer.parseInt(request.getParameter("categoryId"));
-            } catch (NumberFormatException e) {
+            if (categoryIdString != null) {
+                try {
+                    categoryId = Integer.parseInt(categoryIdString);
+                } catch (NumberFormatException e) {
+                    categoryId = -1;
+                    response.sendRedirect(
+                            MessageFormat.format("{0}/Account?action=upload&error=invalidcategory", request.getContextPath())
+                    );
+                }
+            } else {
                 categoryId = -1;
-                response.sendRedirect(
-                        MessageFormat.format("{0}/Account?action=upload&error=invalidcategory", request.getContextPath())
-                );
             }
 
-            if (categoryId > 0) {
+            String createCategory = request.getParameter("createCategory");
+
+            Category category;
+            if (createCategory != null) {
+                String categoryDisplayName = request.getParameter("categoryName");
+                String categoryName = removeForbiddenChars(categoryDisplayName).toLowerCase();
+
+                if (categoryFacade.findByName(categoryName) == null) {
+                    category = new Category();
+                    category.setDisplayName(categoryDisplayName);
+                    category.setName(categoryName);
+
+                    categoryFacade.create(category);
+                    category = categoryFacade.findByName(categoryName);
+                } else {
+                    category = null;
+                    response.sendRedirect(
+                            MessageFormat.format("{0}/Account?action=upload&error=categoryexists", request.getContextPath())
+                    );
+                }
+            } else if (categoryId > 0) {
+                category = (Category) categoryFacade.find(categoryId);
+            } else {
+                category = null;
+            }
+
+            if (category != null)
                 if (title.equals("")) {
                     response.sendRedirect(
                             MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
                     );
                 } else {
-                    Category category = (Category) categoryFacade.find(categoryId);
+
                     Author author = (Author) request.getSession().getAttribute("currentAuthor");
                     Date date = new Date();
                     Timestamp currentTimestamp = new Timestamp(date.getTime());
@@ -115,19 +147,23 @@ public class AccountServlet extends HttpServlet {
                         Part filePart = request.getPart("file");
                         String fileName = getFileName(filePart);
                         String uploadPath = getServletContext().getRealPath("uploads");
-                        String finalFileName = MessageFormat.format("{0}-{1}-{2}", author.getLogin(), currentTimestamp.toString(), fileName);
-                        char[] forbiddenChars = {'/', '_', ' ', ':', '?'};
-                        for (char forbiddenChar : forbiddenChars) {
-                            finalFileName = finalFileName.replace(forbiddenChar, '-');
-                        }
-                        String path = MessageFormat.format("{0}/{1}/{2}", uploadPath, category.getName(), finalFileName);
+                        String finalFileName = sanitizeFileName(MessageFormat.format("{0}-{1}-{2}", author.getLogin(), currentTimestamp.toString(), fileName));
+                        String path = MessageFormat.format("{0}/{1}/", uploadPath, category.getName());
 
+                        final File uploadDirectory = new File(path);
+                        if (!uploadDirectory.exists()) {
+                            uploadDirectory.mkdir();
+                        }
                         OutputStream out = null;
                         InputStream filecontent = null;
                         final PrintWriter writer = response.getWriter();
 
                         try {
-                            out = new FileOutputStream(new File(path));
+                            File finalFile = new File(uploadDirectory, finalFileName);
+                            if (!finalFile.exists()) {
+                                finalFile.createNewFile();
+                            }
+                            out = new FileOutputStream(finalFile);
                             filecontent = filePart.getInputStream();
 
                             int read = 0;
@@ -146,6 +182,7 @@ public class AccountServlet extends HttpServlet {
                             work.setCategory(category);
                             work.setTitle(title);
                             workFacade.create(work);
+
                             response.sendRedirect(
                                     MessageFormat.format("{0}/Account?action=upload&message=uploadsuccess", request.getContextPath())
                             );
@@ -166,7 +203,6 @@ public class AccountServlet extends HttpServlet {
                         }
                     }
                 }
-            }
         } else {
             response.sendRedirect(
                     MessageFormat.format("{0}/Account?action=upload&error=notitle", request.getContextPath())
@@ -282,4 +318,29 @@ public class AccountServlet extends HttpServlet {
             }
         }
     }
+
+    // region utils
+
+    private String removeForbiddenChars(String string) {
+        String sanitzedString = string;
+        char[] forbiddenChars = {',','_','.','?',';','!','/','\\','\n','\'','’','”','[',']','{','}','(',')','|','&',' ',':'};
+
+        for (char forbiddenChar: forbiddenChars) {
+            sanitzedString = sanitzedString.replace(forbiddenChar, '-');
+        }
+
+        return sanitzedString;
+    }
+
+    private String sanitizeFileName(String rawFileName) {
+        int extensionIndex = rawFileName.lastIndexOf('.');
+        String extension = rawFileName.substring(extensionIndex);
+        String fileName = rawFileName.substring(0, extensionIndex);
+
+        fileName = removeForbiddenChars(fileName).toLowerCase();
+
+        return fileName + "." + extension;
+    }
+
+    // endregion
 }

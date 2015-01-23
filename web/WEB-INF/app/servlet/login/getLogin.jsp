@@ -20,11 +20,11 @@
             </div>
             <p class="text-center">
               No account ?
-              <a href="${rootUrl}/Account?action=signup">Sign up</a>
+              <a href="${rootUrl}/Login?action=signup">Sign up</a>
             </p>
             <input type="hidden" name="action" value="login" />
             <!--<input type="hidden" name="secret" value="1586231455" />-->
-            <input type="submit" class="btn-block btn btn-primary" />
+            <input type="submit" class="btn-block btn btn-primary" value="Sign in" />
           </form>
         </div>
       </div>

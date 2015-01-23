@@ -9,15 +9,16 @@ import java.util.Collection;
 @Entity
 @Table(
         name = "category",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"id", "name"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"id", "name", "displayName"})
 )
 public class Category {
     private int id;
     private String name;
+    private String displayName;
     private Collection<Work> works;
-    private Collection<Work> worksById;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     public int getId() {
         return id;
@@ -37,6 +38,16 @@ public class Category {
         this.name = name;
     }
 
+    @Basic
+    @Column(name = "displayName")
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -46,6 +57,7 @@ public class Category {
 
         if (id != category.id) return false;
         if (name != null ? !name.equals(category.name) : category.name != null) return false;
+        if (displayName != null ? !displayName.equals(category.displayName) : category.displayName != null) return false;
 
         return true;
     }
@@ -64,14 +76,5 @@ public class Category {
 
     public void setWorks(Collection<Work> works) {
         this.works = works;
-    }
-
-    @OneToMany(mappedBy = "category")
-    public Collection<Work> getWorksById() {
-        return worksById;
-    }
-
-    public void setWorksById(Collection<Work> worksById) {
-        this.worksById = worksById;
     }
 }

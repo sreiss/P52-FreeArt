@@ -29,7 +29,7 @@
             <tr>
               <td><a href="${rootUrl}/Work?id=${work.id}">${work.title}</a></td>
               <td><a href="${rootUrl}/Author?id=${work.author.id}">${work.author.firstName} ${work.author.name} (${work.author.login})</a></td>
-              <td><a href="${rootUrl}/Work?category&id=${work.category.id}">${work.category.name}</a></td>
+              <td><a href="${rootUrl}/Work?category&id=${work.category.id}">${work.category.displayName}</a></td>
               <td><fmt:formatDate value="${work.creationDate}" type="date"></fmt:formatDate></td>
             </tr>
           </c:forEach>

@@ -19,7 +19,7 @@
       <c:forEach items="${works}" var="work">
         <tr>
           <td class="vertical-align-middle">${work.title}</td>
-          <td class="vertical-align-middle">${work.category.name}</td>
+          <td class="vertical-align-middle">${work.category.displayName}</td>
           <td class="vertical-align-middle">${work.author.firstName} ${work.author.name} (${work.author.login})</td>
           <td class="vertical-align-middle"><fmt:formatDate value="${work.creationDate}" type="date"></fmt:formatDate></td>
           <td class="vertical-align-middle">

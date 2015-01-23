@@ -10,7 +10,7 @@
   <ol class="breadcrumb">
     <li><a href="${rootUrl}/Work">All Works</a></li>
     <li><a href="${rootUrl}/Work?category">Categories</a></li>
-    <li><a href="${rootUrl}/Work?category&id=${work.category.id}" class="text-capitalize">${fn:toLowerCase(work.category.name)}</a></li>
+    <li><a href="${rootUrl}/Work?category&id=${work.category.id}" class="text-capitalize">${work.category.displayName}</a></li>
     <li class="active">${work.title}</li>
   </ol>
   <h1 class="text-center">${work.title}</h1>
