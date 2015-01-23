@@ -183,6 +183,9 @@ public class AccountServlet extends HttpServlet {
                             work.setTitle(title);
                             workFacade.create(work);
 
+                            category.getWorks().add(work);
+                            categoryFacade.update(category);
+
                             response.sendRedirect(
                                     MessageFormat.format("{0}/Account?action=upload&message=uploadsuccess", request.getContextPath())
                             );
