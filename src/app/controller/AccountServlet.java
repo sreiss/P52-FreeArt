@@ -156,7 +156,6 @@ public class AccountServlet extends HttpServlet {
                         }
                         OutputStream out = null;
                         InputStream filecontent = null;
-                        final PrintWriter writer = response.getWriter();
 
                         try {
                             File finalFile = new File(uploadDirectory, finalFileName);
@@ -202,7 +201,7 @@ public class AccountServlet extends HttpServlet {
                                     final byte[] thumbnailBytes = new byte[1024];
 
                                     while ((readThumbnail = thumbnailFileContent.read()) != -1) {
-                                        thumbnailOut.write(bytes, 0, readThumbnail);
+                                        thumbnailOut.write(thumbnailBytes, 0, readThumbnail);
                                     }
 
                                     thumbnail = finalFileName;
@@ -247,9 +246,6 @@ public class AccountServlet extends HttpServlet {
                             }
                             if (filecontent != null) {
                                 filecontent.close();
-                            }
-                            if (writer != null) {
-                                writer.close();
                             }
                         }
                     }
