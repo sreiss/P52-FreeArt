@@ -173,9 +173,57 @@ public class AccountServlet extends HttpServlet {
                                 out.write(bytes, 0, read);
                             }
 
+                            // If there is a thumbnail, we try to add it.
+                            Part thumbnailPart = request.getPart("thumbnail");
+                            String thumbnail = "";
+                            if (thumbnailPart != null) {
+                                String thumbnailUploadPath = getServletContext().getRealPath("thumbnails");
+                                // No need to build a special thumbnail file name, we'll use the same as the file name.
+                                String thumbnailPath = MessageFormat.format("{0}/{1}/", thumbnailUploadPath, category.getName());
+
+                                final File thumbnailUploadDirectory = new File(thumbnailPath);
+                                if (!thumbnailUploadDirectory.exists()) {
+                                    thumbnailUploadDirectory.mkdir();
+                                }
+
+                                OutputStream thumbnailOut = null;
+                                InputStream thumbnailFileContent = null;
+
+                                try {
+                                    File finalThumbnailFile = new File(thumbnailUploadDirectory, finalFileName);
+                                    if (!finalThumbnailFile.exists()) {
+                                        finalThumbnailFile.createNewFile();
+                                    }
+
+                                    thumbnailOut = new FileOutputStream(finalThumbnailFile);
+                                    thumbnailFileContent = thumbnailPart.getInputStream();
+
+                                    int readThumbnail = 0;
+                                    final byte[] thumbnailBytes = new byte[1024];
+
+                                    while ((readThumbnail = thumbnailFileContent.read()) != -1) {
+                                        thumbnailOut.write(bytes, 0, readThumbnail);
+                                    }
+
+                                    thumbnail = finalFileName;
+                                } catch (FileNotFoundException e) {
+
+                                } finally {
+                                    if (thumbnailOut != null) {
+                                        thumbnailOut.close();
+                                    }
+                                    if (thumbnailFileContent != null) {
+                                        thumbnailFileContent.close();
+                                    }
+                                }
+                            }
+
                             Work work = new Work();
                             work.setAuthor((Author) request.getSession().getAttribute("currentAuthor"));
                             work.setFile(finalFileName);
+                            if (!thumbnail.equals("")) {
+                                work.setThumbnail(thumbnail);
+                            }
                             work.setCreationDate(currentTimestamp);
                             work.setLocation(location);
                             work.setDescription(description);
@@ -337,7 +385,7 @@ public class AccountServlet extends HttpServlet {
 
     private String sanitizeFileName(String rawFileName) {
         int extensionIndex = rawFileName.lastIndexOf('.');
-        String extension = rawFileName.substring(extensionIndex);
+        String extension = rawFileName.substring(extensionIndex + 1);
         String fileName = rawFileName.substring(0, extensionIndex);
 
         fileName = removeForbiddenChars(fileName).toLowerCase();
