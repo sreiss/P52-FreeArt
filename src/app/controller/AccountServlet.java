@@ -7,6 +7,7 @@ import app.error.ErrorManager;
 import app.model.Author;
 import app.model.Category;
 import app.model.Work;
+import app.util.SlugBuilder;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -109,7 +110,7 @@ public class AccountServlet extends HttpServlet {
             Category category;
             if (createCategory != null) {
                 String categoryDisplayName = request.getParameter("categoryName");
-                String categoryName = removeForbiddenChars(categoryDisplayName).toLowerCase();
+                String categoryName = SlugBuilder.removeForbiddenChars(categoryDisplayName).toLowerCase();
 
                 if (categoryFacade.findByName(categoryName) == null) {
                     category = new Category();
@@ -145,109 +146,119 @@ public class AccountServlet extends HttpServlet {
 
                         // Create path components to save the file
                         Part filePart = request.getPart("file");
-                        String fileName = getFileName(filePart);
-                        String uploadPath = getServletContext().getRealPath("uploads");
-                        String finalFileName = sanitizeFileName(MessageFormat.format("{0}-{1}-{2}", author.getLogin(), currentTimestamp.toString(), fileName));
-                        String path = MessageFormat.format("{0}/{1}/", uploadPath, category.getName());
+                        if (filePart != null) {
+                            String fileName = getFileName(filePart);
+                            String uploadPath = getServletContext().getRealPath("uploads");
+                            String finalFileName = SlugBuilder.sanitizeFileName(MessageFormat.format("{0}-{1}-{2}", author.getLogin(), currentTimestamp.toString(), fileName));
+                            String path = MessageFormat.format("{0}/{1}/", uploadPath, category.getName());
 
-                        final File uploadDirectory = new File(path);
-                        if (!uploadDirectory.exists()) {
-                            uploadDirectory.mkdir();
-                        }
-                        OutputStream out = null;
-                        InputStream filecontent = null;
-
-                        try {
-                            File finalFile = new File(uploadDirectory, finalFileName);
-                            if (!finalFile.exists()) {
-                                finalFile.createNewFile();
+                            final File uploadDirectory = new File(path);
+                            if (!uploadDirectory.exists()) {
+                                uploadDirectory.mkdir();
                             }
-                            out = new FileOutputStream(finalFile);
-                            filecontent = filePart.getInputStream();
+                            OutputStream out = null;
+                            InputStream filecontent = null;
 
-                            int read = 0;
-                            final byte[] bytes = new byte[1024];
+                            try {
+                                File finalFile = new File(uploadDirectory, finalFileName);
+                                if (!finalFile.exists()) {
+                                    finalFile.createNewFile();
+                                }
+                                out = new FileOutputStream(finalFile);
+                                filecontent = filePart.getInputStream();
 
-                            while ((read = filecontent.read(bytes)) != -1) {
-                                out.write(bytes, 0, read);
-                            }
+                                int read = 0;
+                                final byte[] bytes = new byte[1024];
 
-                            // If there is a thumbnail, we try to add it.
-                            Part thumbnailPart = request.getPart("thumbnail");
-                            String thumbnail = "";
-                            if (thumbnailPart != null) {
-                                String thumbnailUploadPath = getServletContext().getRealPath("thumbnails");
-                                // No need to build a special thumbnail file name, we'll use the same as the file name.
-                                String thumbnailPath = MessageFormat.format("{0}/{1}/", thumbnailUploadPath, category.getName());
-
-                                final File thumbnailUploadDirectory = new File(thumbnailPath);
-                                if (!thumbnailUploadDirectory.exists()) {
-                                    thumbnailUploadDirectory.mkdir();
+                                while ((read = filecontent.read(bytes)) != -1) {
+                                    out.write(bytes, 0, read);
                                 }
 
-                                OutputStream thumbnailOut = null;
-                                InputStream thumbnailFileContent = null;
+                                // If there is a thumbnail, we try to add it.
+                                Part thumbnailPart = request.getPart("thumbnail");
+                                String thumbnail = "";
+                                if (thumbnailPart != null) {
+                                    String thumbnailUploadPath = getServletContext().getRealPath("thumbnails");
+                                    // No need to build a special thumbnail file name, we'll use the same as the file name.
+                                    String thumbnailPath = MessageFormat.format("{0}/{1}/", thumbnailUploadPath, category.getName());
 
-                                try {
-                                    File finalThumbnailFile = new File(thumbnailUploadDirectory, finalFileName);
-                                    if (!finalThumbnailFile.exists()) {
-                                        finalThumbnailFile.createNewFile();
+                                    final File thumbnailUploadDirectory = new File(thumbnailPath);
+                                    if (!thumbnailUploadDirectory.exists()) {
+                                        thumbnailUploadDirectory.mkdir();
                                     }
 
-                                    thumbnailOut = new FileOutputStream(finalThumbnailFile);
-                                    thumbnailFileContent = thumbnailPart.getInputStream();
+                                    OutputStream thumbnailOut = null;
+                                    InputStream thumbnailFileContent = null;
 
-                                    int readThumbnail = 0;
-                                    final byte[] thumbnailBytes = new byte[1024];
+                                    try {
+                                        File finalThumbnailFile = new File(thumbnailUploadDirectory, finalFileName);
+                                        if (!finalThumbnailFile.exists()) {
+                                            finalThumbnailFile.createNewFile();
+                                        }
 
-                                    while ((readThumbnail = thumbnailFileContent.read()) != -1) {
-                                        thumbnailOut.write(thumbnailBytes, 0, readThumbnail);
-                                    }
+                                        thumbnailOut = new FileOutputStream(finalThumbnailFile);
+                                        thumbnailFileContent = thumbnailPart.getInputStream();
 
-                                    thumbnail = finalFileName;
-                                } catch (FileNotFoundException e) {
+                                        int readThumbnail = 0;
+                                        final byte[] thumbnailBytes = new byte[1024];
 
-                                } finally {
-                                    if (thumbnailOut != null) {
-                                        thumbnailOut.close();
-                                    }
-                                    if (thumbnailFileContent != null) {
-                                        thumbnailFileContent.close();
+                                        while ((readThumbnail = thumbnailFileContent.read(thumbnailBytes)) != -1) {
+                                            thumbnailOut.write(thumbnailBytes, 0, readThumbnail);
+                                        }
+
+                                        thumbnail = finalFileName;
+                                    } catch (FileNotFoundException e) {
+
+                                    } finally {
+                                        if (thumbnailOut != null) {
+                                            thumbnailOut.close();
+                                        }
+                                        if (thumbnailFileContent != null) {
+                                            thumbnailFileContent.close();
+                                        }
                                     }
                                 }
+
+                                Work work = new Work();
+                                work.setAuthor((Author) request.getSession().getAttribute("currentAuthor"));
+                                work.setFile(finalFileName);
+                                if (!thumbnail.equals("")) {
+                                    work.setThumbnail(thumbnail);
+                                }
+                                work.setCreationDate(currentTimestamp);
+                                work.setLocation(location);
+                                work.setDescription(description);
+                                work.setCategory(category);
+                                work.setTitle(title);
+                                workFacade.create(work);
+
+                                category.getWorks().add(work);
+                                categoryFacade.update(category);
+
+                                response.sendRedirect(
+                                        MessageFormat.format("{0}/Account?action=upload&message=uploadsuccess", request.getContextPath())
+                                );
+                            } catch (FileNotFoundException fne) {
+                                response.sendRedirect(
+                                        MessageFormat.format("{0}/Account?action=upload&error=filecreation", request.getContextPath())
+                                );
+                            } finally {
+                                if (out != null) {
+                                    out.close();
+                                }
+                                if (filecontent != null) {
+                                    filecontent.close();
+                                }
                             }
-
-                            Work work = new Work();
-                            work.setAuthor((Author) request.getSession().getAttribute("currentAuthor"));
-                            work.setFile(finalFileName);
-                            if (!thumbnail.equals("")) {
-                                work.setThumbnail(thumbnail);
-                            }
-                            work.setCreationDate(currentTimestamp);
-                            work.setLocation(location);
-                            work.setDescription(description);
-                            work.setCategory(category);
-                            work.setTitle(title);
-                            workFacade.create(work);
-
-                            category.getWorks().add(work);
-                            categoryFacade.update(category);
-
+                        } else {
                             response.sendRedirect(
-                                    MessageFormat.format("{0}/Account?action=upload&message=uploadsuccess", request.getContextPath())
+                                    MessageFormat.format("{0}/Account?action=upload&error=nofile", request.getContextPath())
                             );
-                        } catch (FileNotFoundException fne) {
-                            response.sendRedirect(
-                                    MessageFormat.format("{0}/Account?action=upload&error=filecreation", request.getContextPath())
-                            );
-                        } finally {
-                            if (out != null) {
-                                out.close();
-                            }
-                            if (filecontent != null) {
-                                filecontent.close();
-                            }
                         }
+                    } else {
+                        response.sendRedirect(
+                                MessageFormat.format("{0}/Account?action=upload&error=nocategory", request.getContextPath())
+                        );
                     }
                 }
         } else {
@@ -365,29 +376,4 @@ public class AccountServlet extends HttpServlet {
             }
         }
     }
-
-    // region utils
-
-    private String removeForbiddenChars(String string) {
-        String sanitzedString = string;
-        char[] forbiddenChars = {',','_','.','?',';','!','/','\\','\n','\'','’','”','[',']','{','}','(',')','|','&',' ',':'};
-
-        for (char forbiddenChar: forbiddenChars) {
-            sanitzedString = sanitzedString.replace(forbiddenChar, '-');
-        }
-
-        return sanitzedString;
-    }
-
-    private String sanitizeFileName(String rawFileName) {
-        int extensionIndex = rawFileName.lastIndexOf('.');
-        String extension = rawFileName.substring(extensionIndex + 1);
-        String fileName = rawFileName.substring(0, extensionIndex);
-
-        fileName = removeForbiddenChars(fileName).toLowerCase();
-
-        return fileName + "." + extension;
-    }
-
-    // endregion
 }

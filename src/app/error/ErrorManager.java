@@ -36,6 +36,9 @@ public class ErrorManager {
         errorsMap.put("account", new HashMap<String, String>(){{
             put("updatefailure", "We were not able to update your data, sorry.");
             put("passwordupdatefailure", "We were not able to update your password, sorry.");
+            put("nofile", "You didn't select any file to upload.");
+            put("nocategory", "You didn't select any category to add the upload to.");
+            put("notitle", "You didn't give a title to your work.");
         }});
     }
 

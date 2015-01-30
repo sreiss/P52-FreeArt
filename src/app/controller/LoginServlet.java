@@ -3,6 +3,7 @@ package app.controller;
 import app.ejb.AuthorFacadeBean;
 import app.error.ErrorManager;
 import app.model.Author;
+import app.util.SlugBuilder;
 
 import javax.ejb.EJB;
 import javax.servlet.RequestDispatcher;
@@ -89,7 +90,7 @@ public class LoginServlet extends HttpServlet {
             );
         } else {
             Author author = new Author();
-            author.setLogin(login);
+            author.setLogin(SlugBuilder.removeForbiddenChars(login).toLowerCase());
             author.setName(name);
             author.setFirstName(firstName);
             author.setEmail(email);

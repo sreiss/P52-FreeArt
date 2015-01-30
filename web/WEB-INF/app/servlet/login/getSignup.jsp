@@ -20,6 +20,7 @@
           <form method="post" action="${rootUrl}/Login">
             <div class="form-group">
               <label>Username</label>
+              <p class="text-center">Please note that capital cases will be replaced by lower cases and "-" will take any none alphanumerical character's place.</p>
               <input type="text" class="form-control text-center" name="login" />
             </div>
             <div class="form-group">
